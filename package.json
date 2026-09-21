@@ -1,0 +1,16 @@
+{
+  "name": "e-commerce-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "dev": "pnpm --parallel --stream -r dev",
+    "dev:web": "pnpm --filter @e-commerce/web dev",
+    "dev:api": "pnpm --filter @e-commerce/api dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm --filter @e-commerce/api test:e2e",
+    "format": "pnpm -r --if-present format"
+  }
+}
