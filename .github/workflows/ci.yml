@@ -1,0 +1,201 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate workspace
+        run: pnpm -r list --depth -1
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
+
+      - name: Scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm test:unit
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-coverage
+          path: apps/**/coverage
+          if-no-files-found: error
+          retention-days: 14
+
+  integration-tests:
+    name: integration-tests
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_PROJECT_NAME: ecommerce-ci-integration
+      COMPOSE_FILE: compose.yaml:compose.ci.yaml
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Start PostgreSQL and wait for health
+        run: docker compose up --wait --wait-timeout 90 postgres
+
+      - name: Run API integration and end-to-end tests
+        run: pnpm test:integration
+
+      - name: Stop and remove CI services
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      INTERNAL_API_URL: http://localhost:3001
+      DATABASE_URL: postgresql://commerce:commerce_dev_password@localhost:5432/ecommerce?schema=public
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm build
+
+  docker-build:
+    name: docker-build
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_PROJECT_NAME: ecommerce-ci
+      COMPOSE_FILE: compose.yaml:compose.ci.yaml
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build production images
+        run: docker compose build
+
+      - name: Start the CI stack and wait for health
+        run: docker compose up --detach --wait --wait-timeout 180
+
+      - name: Verify health endpoints and non-root users
+        run: |
+          docker compose exec -T api node -e 'Promise.all([fetch("http://127.0.0.1:3001/api/health"), fetch("http://web:3000/_health")]).then(async ([api, web]) => { if (!api.ok || !web.ok) process.exit(1); const apiBody = await api.json(); const webBody = await web.json(); if (apiBody.service !== "api" || webBody.service !== "web") process.exit(1); })'
+          test "$(docker compose exec -T api node -p 'process.getuid()')" != "0"
+          test "$(docker compose exec -T web node -p 'process.getuid()')" != "0"
+
+      - name: Report all image vulnerability severities
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: e-commerce-platform/api:local
+          format: table
+          vuln-type: os,library
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Block high and critical API image vulnerabilities
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: e-commerce-platform/api:local
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Report all web image vulnerability severities
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: e-commerce-platform/web:local
+          format: table
+          vuln-type: os,library
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Block high and critical web image vulnerabilities
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: e-commerce-platform/web:local
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Stop and remove the CI stack
+        if: always()
+        run: docker compose down --volumes --remove-orphans
