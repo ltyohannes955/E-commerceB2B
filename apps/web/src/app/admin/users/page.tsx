@@ -1,19 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useEffect, useState } from 'react';
 import { SiteShell } from '@/components/site-shell';
+
+function fetchUsers(query: string) {
+  return fetch(
+    `/api/backend/admin/users?page=1&pageSize=50&search=${encodeURIComponent(query)}`,
+    { credentials: 'include' },
+  );
+}
+
 export default function AdminUsersPage() {
   const [data, setData] = useState<any>();
   const [query, setQuery] = useState('');
   async function load() {
-    const response = await fetch(
-      `/api/backend/admin/users?page=1&pageSize=50&search=${encodeURIComponent(query)}`,
-      { credentials: 'include' },
-    );
+    const response = await fetchUsers(query);
     if (response.ok) setData(await response.json());
   }
   useEffect(() => {
-    void load();
+    fetchUsers('').then(async (response) => {
+      if (response.ok) setData(await response.json());
+    });
   }, []);
   async function toggle(user: any) {
     const csrf = await fetch('/api/backend/auth/csrf', {

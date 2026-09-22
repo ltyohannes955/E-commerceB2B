@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
