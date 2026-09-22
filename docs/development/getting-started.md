@@ -32,4 +32,13 @@ load that file with Node's `--env-file-if-exists` option. All real environment
 files are ignored by Git.
 
 Example database credentials are for local development only. No production
-credentials belong in the repository.
+credentials belong in the repository.## Phase 1 database setup
+
+After PostgreSQL is running, apply the committed migration and create the local admin account:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+
+The API exposes account routes below `/api/auth`, profile routes below `/api/users/me`, and admin routes below `/api/admin`. Authentication cookies are issued by the API and browser requests use the same-origin Next.js `/api/backend/*` rewrite.

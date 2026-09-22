@@ -18,13 +18,18 @@
     "test": "pnpm test:unit && pnpm test:integration",
     "test:unit": "pnpm --filter @e-commerce/web test:ci && pnpm --filter @e-commerce/api test:ci",
     "test:integration": "pnpm --filter @e-commerce/api test:e2e",
-    "test:e2e": "pnpm --filter @e-commerce/api test:e2e",
+    "test:e2e": "pnpm --filter @e-commerce/web test:e2e",
+    "db:generate": "pnpm --filter @e-commerce/api db:generate",
+    "db:migrate": "pnpm --filter @e-commerce/api db:migrate",
+    "db:migrate:deploy": "pnpm --filter @e-commerce/api db:migrate:deploy",
+    "db:seed": "pnpm --filter @e-commerce/api db:seed",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up --build --detach --wait",
     "docker:down": "docker compose down",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "prettier": "^3.9.8"
   }
 }

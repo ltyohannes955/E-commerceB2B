@@ -1,17 +1,26 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AppService } from './app.service';
+import { HealthService } from './common/health.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
+  constructor(
+    private readonly appService: AppService,
+    private readonly health: HealthService,
+  ) {}
+  @Get() getHello(): string {
     return this.appService.getHello();
   }
-
-  @Get('api/health')
-  getHealth(): { status: 'ok'; service: 'api' } {
-    return { status: 'ok', service: 'api' };
+  @Get('health') @HttpCode(HttpStatus.OK) async getHealth() {
+    const result = await this.health.check();
+    if (result.status === 'error')
+      throw new ServiceUnavailableException(result);
+    return result;
   }
 }

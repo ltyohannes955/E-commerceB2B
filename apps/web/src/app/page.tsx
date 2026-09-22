@@ -1,69 +1,143 @@
 import Image from 'next/image';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  Factory,
+  MagnifyingGlass,
+  Package,
+  SealCheck,
+  Storefront,
+  Wrench,
+} from '@phosphor-icons/react/dist/ssr';
+import { SiteShell } from '@/components/site-shell';
+
+const categories = [
+  {
+    icon: Factory,
+    label: 'Industrial equipment',
+    detail: 'Tools, machinery, and dependable inputs for growing operations.',
+    accent: 'category-card-navy',
+  },
+  {
+    icon: Package,
+    label: 'Packaging & supplies',
+    detail: 'The cartons, containers, and materials that keep orders moving.',
+    accent: 'category-card-sand',
+  },
+  {
+    icon: Storefront,
+    label: 'Office & retail',
+    detail: 'Practical stock for offices, shops, and customer-facing spaces.',
+    accent: 'category-card-emerald',
+  },
+  {
+    icon: Wrench,
+    label: 'Hospitality essentials',
+    detail: 'Useful equipment and everyday supplies for hospitality teams.',
+    accent: 'category-card-ink',
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{' '}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{' '}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{' '}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{' '}
-            or the{' '}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{' '}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+    <SiteShell>
+      <section className="hero">
+        <div className="shell hero-grid">
+          <div>
+            <span className="eyebrow">Explore the trade corridor</span>
+            <h1>Find the next thing your business needs.</h1>
+            <p>
+              Explore the categories shaping a simpler way to bring products
+              from Dubai to Ethiopia. A focused catalog experience is coming
+              next.
+            </p>
+            <div className="hero-actions">
+              <Link href="#explore" className="button">
+                Explore categories <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+              <Link href="/how-it-works" className="button button-secondary">
+                How it works
+              </Link>
+            </div>
+            <div className="hero-proof" aria-label="Platform foundations">
+              <span>
+                <SealCheck size={17} aria-hidden="true" /> Curated buying paths
+              </span>
+              <span>
+                <SealCheck size={17} aria-hidden="true" /> Clear account
+                controls
+              </span>
+            </div>
+          </div>
+          <div className="hero-art">
             <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+              src="/trade-corridor-hero.png"
+              alt="Cargo terminal suggesting a Dubai to Ethiopia trade corridor"
+              fill
+              priority
+              sizes="(max-width: 899px) 100vw, 54vw"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <p className="hero-note">
+              A calmer starting point for your next purchase order.
+            </p>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section id="explore" className="section explore-section">
+        <div className="shell">
+          <div className="section-heading section-heading-wide">
+            <span className="eyebrow">Catalog preview</span>
+            <h2>Start with a category. Go deeper when you are ready.</h2>
+            <p>
+              We are shaping the catalog around the real needs of importing
+              businesses. Browse the first sourcing lanes below, then create an
+              account to be ready when live inventory arrives.
+            </p>
+          </div>
+          <div
+            className="catalog-search"
+            role="search"
+            aria-label="Catalog preview search"
+          >
+            <MagnifyingGlass size={20} aria-hidden="true" />
+            <span>Search products, categories, or suppliers</span>
+            <span className="search-status">Catalog coming soon</span>
+          </div>
+          <div className="category-grid">
+            {categories.map(({ icon: Icon, label, detail, accent }) => (
+              <article className={`category-card ${accent}`} key={label}>
+                <div className="category-card-icon">
+                  <Icon size={25} weight="bold" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="category-kicker">Category preview</p>
+                  <h3>{label}</h3>
+                  <p>{detail}</p>
+                </div>
+                <Link href="/sign-up" className="category-link">
+                  Get ready <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section pt-0">
+        <div className="shell dashboard-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="eyebrow">Built for the next order</p>
+            <p className="m-0 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+              Create your account now and keep your details ready for the first
+              live catalog release.
+            </p>
+          </div>
+          <Link href="/sign-up" className="button button-small shrink-0">
+            Create your account <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+    </SiteShell>
   );
 }

@@ -41,11 +41,16 @@ Start the full production-like Compose stack with:
     pnpm format:check         Check repository formatting
     pnpm test:unit            Run frontend and backend unit tests with coverage
     pnpm test:integration     Run API integration and end-to-end tests
-    pnpm test:e2e             Run API end-to-end tests
+    pnpm test:e2e             Run Playwright browser smoke tests
     pnpm check                Run formatting, lint, type, unit, and build checks
+    pnpm db:generate          Generate the Prisma client
+    pnpm db:migrate           Apply local Prisma migrations
+    pnpm db:seed              Ensure the configured admin account exists
     pnpm docker:build         Build local production images
     pnpm docker:up            Build and start the Compose stack
     pnpm docker:down          Stop the Compose stack
+
+Phase 1 adds basic customer signup/login, account security, and an admin customer directory. Run `pnpm db:migrate` after PostgreSQL is available and configure the admin seed values in `.env`.
 
 Health endpoints are GET /_health and GET /api/health. GET / preserves the
 generated NestJS example.
