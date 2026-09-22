@@ -2,147 +2,172 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
-  Factory,
+  ArrowUpRight,
+  CaretRight,
+  Cube,
+  Lightning,
   MagnifyingGlass,
   Package,
-  SealCheck,
-  Storefront,
-  Wrench,
+  ShieldCheck,
+  SquaresFour,
 } from '@phosphor-icons/react/dist/ssr';
-import { SiteShell } from '@/components/site-shell';
 import { FeaturedProducts } from '@/components/catalog-ui';
+import { SiteShell } from '@/components/site-shell';
 
-const categories = [
+const departments = [
   {
-    icon: Factory,
-    label: 'Industrial equipment',
-    detail: 'Tools, machinery, and dependable inputs for growing operations.',
-    accent: 'category-card-navy',
+    name: 'Industrial equipment',
+    slug: 'industrial-equipment',
+    count: 'Kitchen, tools, machinery',
+    icon: Cube,
   },
   {
+    name: 'Lighting & electrical',
+    slug: 'lighting-electrical',
+    count: 'Fixtures, power, backup',
+    icon: Lightning,
+  },
+  {
+    name: 'Office & retail',
+    slug: 'office-retail',
+    count: 'Furniture, displays, supplies',
+    icon: SquaresFour,
+  },
+  {
+    name: 'Hospitality essentials',
+    slug: 'hospitality-essentials',
+    count: 'Guest rooms, service, fit-out',
     icon: Package,
-    label: 'Packaging & supplies',
-    detail: 'The cartons, containers, and materials that keep orders moving.',
-    accent: 'category-card-sand',
-  },
-  {
-    icon: Storefront,
-    label: 'Office & retail',
-    detail: 'Practical stock for offices, shops, and customer-facing spaces.',
-    accent: 'category-card-emerald',
-  },
-  {
-    icon: Wrench,
-    label: 'Hospitality essentials',
-    detail: 'Useful equipment and everyday supplies for hospitality teams.',
-    accent: 'category-card-ink',
   },
 ];
 
 export default function Home() {
   return (
     <SiteShell>
-      <section className="hero">
-        <div className="shell hero-grid">
-          <div>
-            <span className="eyebrow">Explore the trade corridor</span>
-            <h1>Find the next thing your business needs.</h1>
-            <p>
-              Explore the categories shaping a simpler way to bring products
-              from Dubai to Ethiopia. Browse clear product details, MOQs, and
-              buying paths before your next order.
-            </p>
-            <div className="hero-actions">
-              <Link href="#explore" className="button">
-                Explore categories <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <Link href="/how-it-works" className="button button-secondary">
-                How it works
-              </Link>
+      <div className="home-commerce">
+        <section className="home-intro">
+          <div className="shell home-intro-grid">
+            <div className="home-intro-copy">
+              <p className="store-kicker">
+                A practical buying desk for Ethiopia
+              </p>
+              <h1>Stock your next order with less back and forth.</h1>
+              <p className="home-intro-description">
+                Compare business-ready products, clear minimums, and dependable
+                buying paths before you request a quote or place an order.
+              </p>
+              <form className="home-search" action="/search" role="search">
+                <MagnifyingGlass size={21} aria-hidden="true" />
+                <input
+                  name="q"
+                  placeholder="What are you sourcing today?"
+                  aria-label="Search products"
+                />
+                <button type="submit">Search</button>
+              </form>
+              <div className="home-search-links">
+                <span>Popular:</span>
+                <Link href="/search?q=lighting">lighting</Link>
+                <Link href="/search?q=inverter">inverters</Link>
+                <Link href="/search?q=chair">office chairs</Link>
+              </div>
             </div>
-            <div className="hero-proof" aria-label="Platform foundations">
-              <span>
-                <SealCheck size={17} aria-hidden="true" /> Curated buying paths
-              </span>
-              <span>
-                <SealCheck size={17} aria-hidden="true" /> Clear account
-                controls
-              </span>
-            </div>
-          </div>
-          <div className="hero-art">
-            <Image
-              src="/trade-corridor-hero.png"
-              alt="Cargo terminal suggesting a Dubai to Ethiopia trade corridor"
-              fill
-              priority
-              sizes="(max-width: 899px) 100vw, 54vw"
-            />
-            <p className="hero-note">
-              A calmer starting point for your next purchase order.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="explore" className="section explore-section">
-        <div className="shell">
-          <div className="section-heading section-heading-wide">
-            <span className="eyebrow">Catalog preview</span>
-            <h2>Start with a category. Go deeper when you are ready.</h2>
-            <p>
-              We are shaping the catalog around the real needs of importing
-              businesses. Browse the first sourcing lanes below, then create an
-              account to be ready when live inventory arrives.
-            </p>
-          </div>
-          <div
-            className="catalog-search"
-            role="search"
-            aria-label="Catalog preview search"
-          >
-            <MagnifyingGlass size={20} aria-hidden="true" />
-            <span>Search products, categories, or suppliers</span>
-            <Link href="/search" className="search-status">
-              Search live catalog
-            </Link>
-          </div>
-          <div className="category-grid">
-            {categories.map(({ icon: Icon, label, detail, accent }) => (
-              <article className={`category-card ${accent}`} key={label}>
-                <div className="category-card-icon">
-                  <Icon size={25} weight="bold" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="category-kicker">Category preview</p>
-                  <h3>{label}</h3>
-                  <p>{detail}</p>
-                </div>
-                <Link href="/sign-up" className="category-link">
-                  Get ready <ArrowRight size={16} aria-hidden="true" />
+            <div className="home-intro-visual">
+              <Image
+                src="/trade-corridor-hero.png"
+                alt="Commercial equipment and lighting ready for a business order"
+                fill
+                priority
+                sizes="(max-width: 899px) 100vw, 46vw"
+              />
+              <div className="visual-caption">
+                <span>Featured sourcing lane</span>
+                <strong>Commercial spaces</strong>
+                <Link href="/products">
+                  Shop the catalog <ArrowUpRight size={15} />
                 </Link>
-              </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="department-strip" aria-label="Shop by department">
+          <div className="shell department-grid">
+            {departments.map(({ name, slug, count, icon: Icon }) => (
+              <Link
+                className="department-link"
+                href={`/categories/${slug}`}
+                key={slug}
+              >
+                <span className="department-icon">
+                  <Icon size={22} weight="duotone" />
+                </span>
+                <span>
+                  <strong>{name}</strong>
+                  <small>{count}</small>
+                </span>
+                <CaretRight size={16} className="department-arrow" />
+              </Link>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <FeaturedProducts />
+        <FeaturedProducts />
 
-      <section className="section pt-0">
-        <div className="shell dashboard-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="eyebrow">Built for the next order</p>
-            <p className="m-0 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              Create your account now and keep your details ready for the first
-              live catalog release.
+        <section className="shell sourcing-panel">
+          <div className="sourcing-panel-copy">
+            <p className="store-kicker">Buying with context</p>
+            <h2>Details that make a purchase order easier.</h2>
+            <p>
+              Every listing keeps the practical information close: country of
+              origin, MOQ, lead time, availability, and whether the product is
+              ready for direct purchase or needs a quote.
             </p>
+            <Link href="/how-it-works" className="button button-secondary">
+              How sourcing works <ArrowRight size={17} />
+            </Link>
           </div>
-          <Link href="/sign-up" className="button button-small shrink-0">
-            Create your account <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-      </section>
+          <div className="sourcing-points">
+            <div>
+              <ShieldCheck size={21} />
+              <span>
+                <strong>Clear buying paths</strong>
+                <small>
+                  Know when to buy directly and when to request a quote.
+                </small>
+              </span>
+            </div>
+            <div>
+              <Package size={21} />
+              <span>
+                <strong>Business quantities</strong>
+                <small>MOQs and tier pricing are shown before you start.</small>
+              </span>
+            </div>
+            <div>
+              <Lightning size={21} />
+              <span>
+                <strong>Dubai to Ethiopia</strong>
+                <small>
+                  Built around the trade corridor your team already uses.
+                </small>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="section home-bottom-cta">
+          <div className="shell home-bottom-cta-inner">
+            <div>
+              <p className="store-kicker">Not sure where to begin?</p>
+              <h2>Browse the full catalog by category or brand.</h2>
+            </div>
+            <Link href="/products" className="button">
+              Browse products <ArrowRight size={17} />
+            </Link>
+          </div>
+        </section>
+      </div>
     </SiteShell>
   );
 }

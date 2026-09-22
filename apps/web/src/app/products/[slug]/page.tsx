@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import {
+  CaretRight,
+  Check,
+  Cube,
+  MapPin,
+  Package,
+  Truck,
+} from '@phosphor-icons/react/dist/ssr';
 import { notFound } from 'next/navigation';
 import { SiteShell } from '@/components/site-shell';
 import {
@@ -22,96 +30,111 @@ export default async function ProductDetail({
   }
   return (
     <SiteShell>
-      <section className="section">
+      <div className="product-detail-page">
         <div className="shell">
-          <Link href="/products" className="text-sm text-[var(--muted)]">
-            ← Back to catalog
-          </Link>
-          <div className="mt-6 grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <nav className="breadcrumbs" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <CaretRight size={13} />
+            <Link href="/products">Products</Link>
+            <CaretRight size={13} />
+            <span>{product.name}</span>
+          </nav>
+          <div className="product-detail-grid">
             <ProductGallery product={product} />
-            <div className="grid content-start gap-5">
-              <p className="eyebrow">
-                {product.category.name}
-                {product.brand ? ` · ${product.brand.name}` : ''}
-              </p>
-              <h1 className="m-0 text-4xl leading-tight md:text-5xl">
-                {product.name}
-              </h1>
-              <p className="m-0 text-lg leading-8 text-[var(--muted)]">
-                {product.shortDescription}
-              </p>
-              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
-                <div className="text-2xl">
-                  <PriceDisplay product={product} />
-                </div>
-                <p className="mt-2 mb-0 text-sm text-[var(--muted)]">
-                  Minimum order: {product.minimumOrderQuantity} {product.unit}
-                  {product.leadTimeDays
-                    ? ` · ${product.leadTimeDays} day lead time`
-                    : ''}
-                </p>
-                {product.priceTiers.length > 0 && (
-                  <div className="mt-5 border-t border-[var(--line)] pt-4">
-                    <p className="eyebrow">Volume pricing</p>
-                    <div className="mt-2 grid gap-2 text-sm">
-                      {product.priceTiers.map((tier) => (
-                        <div
-                          className="flex justify-between"
-                          key={tier.minimumQuantity}
-                        >
-                          <span>{tier.minimumQuantity}+ units</span>
-                          <strong>{formatEtb(tier.unitPrice)}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            <div className="product-purchase-panel">
+              <div className="product-detail-meta">
+                <span>{product.category.name}</span>
+                {product.brand && (
+                  <Link href={`/brands/${product.brand.slug}`}>
+                    {product.brand.name}
+                  </Link>
                 )}
               </div>
-              <DisabledActions saleMode={product.saleMode} />
-              <div className="grid gap-3 rounded-2xl border border-[var(--line)] p-5 text-sm">
-                <p className="eyebrow">Details</p>
-                <p className="m-0">
-                  Availability:{' '}
-                  <strong>{product.availability.replaceAll('_', ' ')}</strong>
-                </p>
-                <p className="m-0">
-                  Origin: <strong>{product.countryOfOrigin}</strong>
-                </p>
-                <p className="m-0">
-                  SKU: <strong>{product.internalSku}</strong>
-                </p>
+              <h1>{product.name}</h1>
+              <p className="product-detail-sku">SKU {product.internalSku}</p>
+              <p className="product-detail-description">
+                {product.shortDescription}
+              </p>
+              <div className="purchase-box">
+                <div className="purchase-price">
+                  <PriceDisplay product={product} />
+                </div>
+                <div className="purchase-facts">
+                  <span>
+                    <Package size={17} /> MOQ {product.minimumOrderQuantity}{' '}
+                    {product.unit}
+                  </span>
+                  <span>
+                    <Truck size={17} />{' '}
+                    {product.leadTimeDays
+                      ? `${product.leadTimeDays} day lead time`
+                      : 'Lead time on request'}
+                  </span>
+                  <span>
+                    <Check size={17} />{' '}
+                    {product.availability.replaceAll('_', ' ')}
+                  </span>
+                </div>
+                {product.priceTiers.length > 0 && (
+                  <div className="tier-table">
+                    <div className="tier-table-heading">
+                      Volume pricing <small>Better rates at scale</small>
+                    </div>
+                    {product.priceTiers.map((tier) => (
+                      <div key={tier.minimumQuantity}>
+                        <span>{tier.minimumQuantity}+ units</span>
+                        <strong>{formatEtb(tier.unitPrice)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <DisabledActions saleMode={product.saleMode} />
+              </div>
+              <div className="purchase-assurance">
+                <div>
+                  <MapPin size={18} />
+                  <span>
+                    <strong>Origin</strong>
+                    {product.countryOfOrigin}
+                  </span>
+                </div>
+                <div>
+                  <Cube size={18} />
+                  <span>
+                    <strong>Buying path</strong>
+                    {product.saleMode.replaceAll('_', ' ')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
           {product.variants.length > 1 && (
-            <section className="mt-16">
-              <p className="eyebrow">Configure</p>
-              <h2>Choose a variant</h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <section className="detail-section">
+              <div className="detail-section-heading">
+                <p className="store-kicker">Configure</p>
+                <h2>Choose a variant</h2>
+              </div>
+              <div className="variant-grid">
                 {product.variants.map((variant) => (
-                  <div
-                    className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4"
-                    key={variant.id}
-                  >
+                  <div className="variant-card" key={variant.id}>
                     <strong>{variant.name}</strong>
-                    <p className="m-0 mt-2 text-sm text-[var(--muted)]">
-                      {variant.sku}
-                    </p>
+                    <span>{variant.sku}</span>
+                    {variant.price && <b>{formatEtb(variant.price)}</b>}
                   </div>
                 ))}
               </div>
             </section>
           )}
           {product.specifications.length > 0 && (
-            <section className="mt-16">
-              <p className="eyebrow">Specifications</p>
-              <div className="grid gap-3 sm:grid-cols-2">
+            <section className="detail-section specifications-section">
+              <div className="detail-section-heading">
+                <p className="store-kicker">Product information</p>
+                <h2>Specifications</h2>
+              </div>
+              <div className="specification-list">
                 {product.specifications.map((spec) => (
-                  <div
-                    className="flex justify-between gap-4 border-b border-[var(--line)] py-3 text-sm"
-                    key={`${spec.groupName}-${spec.name}`}
-                  >
-                    <span className="text-[var(--muted)]">{spec.name}</span>
+                  <div key={`${spec.groupName}-${spec.name}`}>
+                    <span>{spec.name}</span>
                     <strong>{spec.value}</strong>
                   </div>
                 ))}
@@ -119,7 +142,7 @@ export default async function ProductDetail({
             </section>
           )}
         </div>
-      </section>
+      </div>
     </SiteShell>
   );
 }

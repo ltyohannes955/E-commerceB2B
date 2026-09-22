@@ -1,6 +1,8 @@
 import { SiteShell } from '@/components/site-shell';
 import { ProductCard } from '@/components/catalog-ui';
 import { catalogFetch, CatalogPage } from '@/lib/catalog';
+import Link from 'next/link';
+import { CaretRight } from '@phosphor-icons/react/dist/ssr';
 
 export default async function SearchPage({
   searchParams,
@@ -19,11 +21,26 @@ export default async function SearchPage({
   }
   return (
     <SiteShell>
-      <section className="section">
+      <div className="catalog-page">
         <div className="shell">
-          <span className="eyebrow">Search</span>
-          <h1>{q ? `Results for “${q}”` : 'Find products by name or SKU.'}</h1>
-          <form action="/search" className="mt-6 flex max-w-xl gap-2">
+          <nav className="breadcrumbs" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <CaretRight size={13} />
+            <span>Search</span>
+          </nav>
+          <div className="catalog-page-heading search-page-heading">
+            <div>
+              <p className="store-kicker">Catalog search</p>
+              <h1>
+                {q ? `Results for “${q}”` : 'Find products by name or SKU.'}
+              </h1>
+              <p>
+                Search across product names, brands, categories, and internal
+                SKUs.
+              </p>
+            </div>
+          </div>
+          <form action="/search" className="search-page-form">
             <input
               className="field"
               name="q"
@@ -34,9 +51,9 @@ export default async function SearchPage({
               Search
             </button>
           </form>
-          <div className="mt-10">
+          <div className="search-page-results">
             {q && data?.items.length ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="product-grid">
                 {data.items.map((product) => (
                   <ProductCard product={product} key={product.id} />
                 ))}
@@ -48,7 +65,7 @@ export default async function SearchPage({
             ) : null}
           </div>
         </div>
-      </section>
+      </div>
     </SiteShell>
   );
 }

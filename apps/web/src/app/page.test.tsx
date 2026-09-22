@@ -14,11 +14,9 @@ describe('Home page', () => {
     render(<Home />);
     expect(
       screen.getByRole('heading', {
-        name: /Find the next thing your business needs/i,
+        name: /Stock your next order with less back and forth/i,
       }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole('link', { name: /Explore categories/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Browse products/i })).toBeTruthy();
   });
 });

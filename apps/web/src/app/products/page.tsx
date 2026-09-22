@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CaretRight, SlidersHorizontal } from '@phosphor-icons/react/dist/ssr';
 import { SiteShell } from '@/components/site-shell';
 import { CatalogFilters, ProductCard } from '@/components/catalog-ui';
 import { catalogFetch, CatalogPage } from '@/lib/catalog';
@@ -19,26 +20,42 @@ export default async function Products({
   } catch {
     data = null;
   }
+  const queryLabel =
+    typeof params.q === 'string' && params.q ? ` for “${params.q}”` : '';
   return (
     <SiteShell>
-      <section className="section">
+      <div className="catalog-page">
         <div className="shell">
-          <div className="section-heading section-heading-wide">
-            <span className="eyebrow">Catalog</span>
-            <h1>Source with a clearer view.</h1>
-            <p>
-              Industrial, commercial, and workplace essentials selected for
-              Ethiopian buyers.
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-            <CatalogFilters searchParams={params} />
+          <nav className="breadcrumbs" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <CaretRight size={13} />
+            <span>All products</span>
+          </nav>
+          <div className="catalog-page-heading">
             <div>
-              <div className="mb-5 flex items-center justify-between text-sm text-[var(--muted)]">
+              <p className="store-kicker">Business catalog</p>
+              <h1>Products{queryLabel}</h1>
+              <p>
+                Compare stock, minimums, and buying paths for your next order.
+              </p>
+            </div>
+            <div className="catalog-heading-note">
+              <SlidersHorizontal size={18} />
+              <span>
+                Prices in ETB
+                <br />
+                <small>Updated catalog view</small>
+              </span>
+            </div>
+          </div>
+          <div className="catalog-layout">
+            <CatalogFilters searchParams={params} />
+            <div className="catalog-results">
+              <div className="results-toolbar">
                 <span>
                   {data ? `${data.total} products` : 'Catalog unavailable'}
                 </span>
-                <Link href="/products" className="underline">
+                <Link href="/products" className="clear-filters">
                   Clear filters
                 </Link>
               </div>
@@ -48,23 +65,30 @@ export default async function Products({
                 </div>
               ) : data.items.length === 0 ? (
                 <div className="empty-state">
-                  No products match those filters.
+                  <strong>No products match those filters.</strong>
+                  <span>
+                    Try a broader search or clear the current filters.
+                  </span>
+                  <Link href="/products" className="button button-secondary">
+                    Clear filters
+                  </Link>
                 </div>
               ) : (
-                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="product-grid">
                   {data.items.map((product) => (
                     <ProductCard product={product} key={product.id} />
                   ))}
                 </div>
               )}
               {data && data.totalPages > 1 && (
-                <nav
-                  className="mt-8 flex justify-center gap-2"
-                  aria-label="Pagination"
-                >
+                <nav className="pagination" aria-label="Pagination">
                   {Array.from({ length: data.totalPages }, (_, i) => (
                     <Link
-                      className={`rounded-lg px-3 py-2 text-sm ${data?.page === i + 1 ? 'bg-[var(--navy)] text-white' : 'border border-[var(--line)]'}`}
+                      className={
+                        data.page === i + 1
+                          ? 'page-number is-current'
+                          : 'page-number'
+                      }
                       href={`/products?${new URLSearchParams({ ...Object.fromEntries(query), page: String(i + 1) }).toString()}`}
                       key={i}
                     >
@@ -76,7 +100,7 @@ export default async function Products({
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </SiteShell>
   );
 }

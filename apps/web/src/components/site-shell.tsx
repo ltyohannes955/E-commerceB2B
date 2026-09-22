@@ -1,11 +1,13 @@
 'use client';
 
 import {
-  ArrowUpRight,
+  ArrowRight,
   CaretDown,
-  List,
+  MagnifyingGlass,
+  ShoppingBagOpen,
   SignOut,
   UserCircle,
+  List,
   X,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
@@ -19,7 +21,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-
     fetch('/api/backend/users/me', { credentials: 'include' })
       .then((response) => {
         if (active) setIsAuthenticated(response.ok);
@@ -27,7 +28,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       .catch(() => {
         if (active) setIsAuthenticated(false);
       });
-
     return () => {
       active = false;
     };
@@ -39,7 +39,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       const csrf = await fetch('/api/backend/auth/csrf', {
         credentials: 'include',
       }).then((response) => response.json());
-
       await fetch('/api/backend/auth/logout', {
         method: 'POST',
         credentials: 'include',
@@ -57,60 +56,39 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     }
   }
 
-  function renderAccountActions(mobile: boolean) {
+  function accountActions(mobile = false) {
     if (isAuthenticated === null) return null;
-
     if (!isAuthenticated) {
       return (
-        <>
-          <Link href="/login">Log in</Link>
-          <Link
-            href="/sign-up"
-            className={mobile ? 'button' : 'button button-small'}
-          >
-            Create account <ArrowUpRight size={15} aria-hidden="true" />
-          </Link>
-        </>
-      );
-    }
-
-    return (
-      <details className={mobile ? 'w-full' : 'relative'}>
-        <summary
-          className={[
-            'flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-[0.65rem] px-3 font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--panel)]',
-            '[&::-webkit-details-marker]:hidden',
-            mobile ? 'w-full justify-between' : '',
-          ].join(' ')}
-        >
-          <span className="flex items-center gap-2">
-            <UserCircle size={19} aria-hidden="true" />
-            My account
-          </span>
-          <CaretDown size={14} aria-hidden="true" />
-        </summary>
-
         <div
           className={
-            mobile
-              ? 'mt-2 grid gap-1 rounded-[0.8rem] border border-[var(--line)] bg-[var(--panel)] p-2'
-              : 'absolute right-0 top-[calc(100%+0.5rem)] z-40 grid w-48 gap-1 rounded-[0.8rem] border border-[var(--line)] bg-[var(--panel)] p-2 shadow-[0_18px_45px_#0b1f331a]'
+            mobile ? 'mobile-account-actions' : 'header-account-actions'
           }
         >
-          <Link
-            href="/account/profile"
-            className="flex min-h-11 items-center gap-2 rounded-[0.6rem] px-3 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface)]"
-          >
-            <UserCircle size={18} aria-hidden="true" />
-            Profile
+          <Link href="/login" className="header-login">
+            Log in
           </Link>
-          <button
-            type="button"
-            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-[0.6rem] border-0 bg-transparent px-3 text-left text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface)] disabled:cursor-wait disabled:opacity-60"
-            disabled={loggingOut}
-            onClick={logout}
-          >
-            <SignOut size={18} aria-hidden="true" />
+          <Link href="/sign-up" className="button button-small">
+            Create account <ArrowRight size={15} aria-hidden="true" />
+          </Link>
+        </div>
+      );
+    }
+    return (
+      <details
+        className={mobile ? 'mobile-account-details' : 'account-details'}
+      >
+        <summary className="account-summary">
+          <UserCircle size={19} aria-hidden="true" />
+          <span>My account</span>
+          <CaretDown size={14} aria-hidden="true" />
+        </summary>
+        <div className="account-menu">
+          <Link href="/account/profile">
+            <UserCircle size={17} aria-hidden="true" /> Profile
+          </Link>
+          <button type="button" onClick={logout} disabled={loggingOut}>
+            <SignOut size={17} aria-hidden="true" />{' '}
             {loggingOut ? 'Logging out...' : 'Log out'}
           </button>
         </div>
@@ -119,56 +97,127 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--surface)] text-[var(--ink)]">
-      <header className="site-header">
-        <div className="shell flex h-20 items-center justify-between">
-          <Link href="/" className="wordmark">
+    <div className="storefront-app">
+      <div className="utility-bar">
+        <div className="shell utility-bar-inner">
+          <span>Dubai to Ethiopia trade desk</span>
+          <span>Prices shown in ETB</span>
+          <span>Business quantities welcome</span>
+        </div>
+      </div>
+      <header className="site-header commerce-header">
+        <div className="shell commerce-header-main">
+          <Link href="/" className="wordmark" aria-label="E-commerce B2B home">
             <span className="wordmark-mark" aria-hidden="true">
               e
             </span>
-            <span>E-commerce B2B</span>
+            <span className="wordmark-copy">
+              <strong>E-commerce</strong>
+              <small>B2B sourcing</small>
+            </span>
           </Link>
-
-          <nav
-            className="site-nav hidden items-center md:flex"
-            aria-label="Primary navigation"
-          >
-            <Link href="/products">Explore products</Link>
-            <Link href="/how-it-works">How it works</Link>
-            {renderAccountActions(false)}
-          </nav>
-
-          <details className="mobile-menu md:hidden">
+          <form className="header-search" action="/search" role="search">
+            <MagnifyingGlass size={19} aria-hidden="true" />
+            <input
+              name="q"
+              placeholder="Search products, brands, or SKUs"
+              aria-label="Search catalog"
+            />
+            <kbd>/</kbd>
+          </form>
+          <div className="header-actions">
+            {accountActions()}
+            <button
+              className="bag-button"
+              type="button"
+              disabled
+              title="Cart arrives in Phase 3"
+            >
+              <ShoppingBagOpen size={20} aria-hidden="true" />
+              <span>Cart</span>
+              <em>Phase 3</em>
+            </button>
+          </div>
+          <details className="mobile-menu">
             <summary
               className="icon-button"
               aria-label="Open menu"
               aria-controls="mobile-navigation"
             >
-              <List className="menu-open-icon" size={20} aria-hidden="true" />
-              <X className="menu-close-icon" size={20} aria-hidden="true" />
+              <List className="menu-open-icon" size={21} aria-hidden="true" />
+              <X className="menu-close-icon" size={21} aria-hidden="true" />
             </summary>
             <div id="mobile-navigation" className="mobile-nav">
-              <nav
-                className="shell mobile-nav-links"
-                aria-label="Mobile navigation"
-              >
-                <Link href="/products">Explore products</Link>
+              <form className="mobile-search" action="/search" role="search">
+                <MagnifyingGlass size={18} aria-hidden="true" />
+                <input
+                  name="q"
+                  placeholder="Search the catalog"
+                  aria-label="Search catalog"
+                />
+              </form>
+              <nav className="mobile-nav-links" aria-label="Mobile navigation">
+                <Link href="/products">All products</Link>
+                <Link href="/categories/industrial-equipment">Categories</Link>
+                <Link href="/brands/lumaforge">Brands</Link>
                 <Link href="/how-it-works">How it works</Link>
-                {renderAccountActions(true)}
+                {accountActions(true)}
               </nav>
             </div>
           </details>
         </div>
+        <nav className="shell commerce-nav" aria-label="Primary navigation">
+          <Link href="/products">All products</Link>
+          <Link href="/categories/industrial-equipment">
+            Industrial equipment
+          </Link>
+          <Link href="/categories/lighting-electrical">
+            Lighting & electrical
+          </Link>
+          <Link href="/categories/office-retail">Office & retail</Link>
+          <Link href="/categories/hospitality-essentials">
+            Hospitality essentials
+          </Link>
+          <Link href="/brands/lumaforge">Browse brands</Link>
+          <Link href="/how-it-works" className="nav-secondary">
+            How it works
+          </Link>
+        </nav>
       </header>
-
       <main>{children}</main>
-      <footer className="border-t border-[var(--line)] py-8">
-        <div className="shell flex flex-col gap-4 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <span>Built for confident cross-border buying.</span>
-          <div className="flex gap-5">
-            <Link href="/terms">Terms</Link>
-            <Link href="/privacy">Privacy</Link>
+      <footer className="storefront-footer">
+        <div className="shell footer-grid">
+          <div>
+            <Link href="/" className="wordmark">
+              <span className="wordmark-mark" aria-hidden="true">
+                e
+              </span>
+              <span className="wordmark-copy">
+                <strong>E-commerce</strong>
+                <small>B2B sourcing</small>
+              </span>
+            </Link>
+            <p>
+              Clearer purchasing for businesses importing from Dubai to
+              Ethiopia.
+            </p>
           </div>
+          <div>
+            <strong>Catalog</strong>
+            <Link href="/products">All products</Link>
+            <Link href="/search">Search</Link>
+            <Link href="/how-it-works">How it works</Link>
+          </div>
+          <div>
+            <strong>Account</strong>
+            <Link href="/login">Log in</Link>
+            <Link href="/sign-up">Create account</Link>
+            <Link href="/terms">Terms & privacy</Link>
+          </div>
+        </div>
+        <div className="shell footer-bottom">
+          <span>Built for confident cross-border buying.</span>
+          <span>© {new Date().getFullYear()} E-commerce B2B</span>
         </div>
       </footer>
     </div>
