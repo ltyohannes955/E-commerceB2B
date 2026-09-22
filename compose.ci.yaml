@@ -11,4 +11,3 @@ services:
     volumes: !override []
     tmpfs:
       - /var/lib/postgresql
-
