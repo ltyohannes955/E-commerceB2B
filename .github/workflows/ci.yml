@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate workspace
+        run: pnpm -r list --depth -1
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
+
+      - name: Scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm test:unit
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-coverage
+          path: apps/**/coverage
+          if-no-files-found: error
+          retention-days: 14
+
+  integration-tests:
+    name: integration-tests
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_PROJECT_NAME: ecommerce-ci-integration
+      COMPOSE_FILE: compose.yaml:compose.ci.yaml
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Start PostgreSQL and wait for health
+        run: docker compose up --wait --wait-timeout 90 postgres
+
+      - name: Run API integration and end-to-end tests
+        run: pnpm test:integration
+
+      - name: Stop and remove CI services
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      INTERNAL_API_URL: http://localhost:3001
+      DATABASE_URL: postgresql://commerce:commerce_dev_password@localhost:5432/ecommerce?schema=public
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm build

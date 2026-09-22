@@ -3,14 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "dev": "pnpm --parallel --stream -r dev",
     "dev:web": "pnpm --filter @e-commerce/web dev",
     "dev:api": "pnpm --filter @e-commerce/api dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm test:unit && pnpm test:integration",
+    "test:unit": "pnpm --filter @e-commerce/web test:ci && pnpm --filter @e-commerce/api test:ci",
+    "test:integration": "pnpm --filter @e-commerce/api test:e2e",
     "test:e2e": "pnpm --filter @e-commerce/api test:e2e",
-    "format": "pnpm -r --if-present format"
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up --build --detach --wait",
+    "docker:down": "docker compose down",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.8"
   }
 }
