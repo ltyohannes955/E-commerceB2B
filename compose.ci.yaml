@@ -6,7 +6,9 @@ services:
     ports: !override []
 
   postgres:
-    ports: !override []
+    ports: !override
+      - '5432:5432'
     volumes: !override []
     tmpfs:
       - /var/lib/postgresql
+

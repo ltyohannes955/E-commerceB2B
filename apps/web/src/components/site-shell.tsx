@@ -9,9 +9,11 @@ import {
   X,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -50,7 +52,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     } finally {
       setIsAuthenticated(false);
       setLoggingOut(false);
-      window.location.assign('/login');
+      router.replace('/login');
+      router.refresh();
     }
   }
 
