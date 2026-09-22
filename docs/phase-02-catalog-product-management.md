@@ -52,6 +52,10 @@ Publication statuses:
 
 Only published products appear publicly.
 
+The implementation exposes public list/detail/search routes under `/api/products`, `/api/search`, `/api/categories`, and `/api/brands`. Administrator mutations live under `/api/admin/products`, `/api/admin/categories`, and `/api/admin/brands`; all mutations require the existing access, admin, and CSRF guards. Public image metadata contains only a relative path and metadata, while `/api/product-images/:id` returns immutable WebP bytes with an ETag.
+
+For local demos and CI, set `CATALOG_SEED_ENABLED=true` before `pnpm db:seed`. The seed is idempotent, creates four top-level sourcing lanes, child categories, four brands, and eight representative products. It is intentionally opt-in and is not enabled by the production Compose configuration.
+
 ## 3. Product variants
 
 Products may have variants such as size, color, model, capacity, packaging, or material.

@@ -10,6 +10,7 @@ import {
   Wrench,
 } from '@phosphor-icons/react/dist/ssr';
 import { SiteShell } from '@/components/site-shell';
+import { FeaturedProducts } from '@/components/catalog-ui';
 
 const categories = [
   {
@@ -48,8 +49,8 @@ export default function Home() {
             <h1>Find the next thing your business needs.</h1>
             <p>
               Explore the categories shaping a simpler way to bring products
-              from Dubai to Ethiopia. A focused catalog experience is coming
-              next.
+              from Dubai to Ethiopia. Browse clear product details, MOQs, and
+              buying paths before your next order.
             </p>
             <div className="hero-actions">
               <Link href="#explore" className="button">
@@ -102,7 +103,9 @@ export default function Home() {
           >
             <MagnifyingGlass size={20} aria-hidden="true" />
             <span>Search products, categories, or suppliers</span>
-            <span className="search-status">Catalog coming soon</span>
+            <Link href="/search" className="search-status">
+              Search live catalog
+            </Link>
           </div>
           <div className="category-grid">
             {categories.map(({ icon: Icon, label, detail, accent }) => (
@@ -123,6 +126,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <FeaturedProducts />
 
       <section className="section pt-0">
         <div className="shell dashboard-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

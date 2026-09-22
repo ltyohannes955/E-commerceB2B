@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             className="site-nav hidden items-center md:flex"
             aria-label="Primary navigation"
           >
-            <Link href="/#explore">Explore products</Link>
+            <Link href="/products">Explore products</Link>
             <Link href="/how-it-works">How it works</Link>
             {renderAccountActions(false)}
           </nav>
@@ -152,7 +152,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 className="shell mobile-nav-links"
                 aria-label="Mobile navigation"
               >
-                <Link href="/#explore">Explore products</Link>
+                <Link href="/products">Explore products</Link>
                 <Link href="/how-it-works">How it works</Link>
                 {renderAccountActions(true)}
               </nav>

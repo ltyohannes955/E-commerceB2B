@@ -39,14 +39,16 @@ test('customer can sign up through the same-origin API proxy in CI', async ({
   page,
 }) => {
   test.skip(
-    !process.env.CI,
-    'The local smoke server does not start PostgreSQL/API services.',
+    process.env.E2E_API_ENABLED !== 'true',
+    'The browser-only smoke server does not start PostgreSQL/API services.',
   );
   const email = `phase1-${Date.now()}@example.com`;
   await page.goto('/sign-up');
   await page.getByLabel('Full name').fill('Phase One Customer');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill('phase-one-password');
+  await page
+    .getByRole('textbox', { name: /^Password/ })
+    .fill('phase-one-password');
   await page.getByLabel(/draft Terms/i).check();
   await page.getByLabel(/draft Privacy/i).check();
   await page.getByRole('button', { name: 'Create account' }).click();

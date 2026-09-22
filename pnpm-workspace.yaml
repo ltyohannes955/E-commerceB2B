@@ -8,6 +8,7 @@ allowBuilds:
   argon2: true
   esbuild: true
   prisma: true
+  sharp: true
   'unrs-resolver': true
 
 overrides:

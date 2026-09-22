@@ -10,6 +10,19 @@
   --sand: #e5d8bd;
   --focus: #f1a75a;
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #0d1b28;
+    --panel: #142838;
+    --ink: #f1f4ef;
+    --muted: #a8b9c0;
+    --line: #2f4652;
+    --navy: #d7e8e8;
+    --emerald: #52c9a3;
+    --sand: #29404a;
+    --focus: #f5bd78;
+  }
+}
 @theme inline {
   --color-background: var(--surface);
   --color-foreground: var(--ink);
@@ -27,6 +40,39 @@ body {
   background: var(--surface);
   color: var(--ink);
   font-family: var(--font-body), sans-serif;
+}
+.field {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0.65rem 0.8rem;
+}
+.field:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus) 72%, transparent);
+  outline-offset: 2px;
+}
+.empty-state {
+  display: grid;
+  min-height: 12rem;
+  place-content: center;
+  gap: 0.5rem;
+  border: 1px dashed var(--line);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+}
+.editor-section {
+  display: grid;
+  gap: 0.75rem;
+  border-top: 1px solid var(--line);
+  padding-top: 2rem;
 }
 a {
   color: inherit;
