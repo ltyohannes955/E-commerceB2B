@@ -42,8 +42,7 @@ Add:
 ```text
 .github/
 ├── workflows/
-│   ├── ci.yml
-│   └── docker-build.yml
+│   └── ci.yml
 ├── pull_request_template.md
 └── dependabot.yml
 ```
@@ -77,15 +76,8 @@ Initially starts a temporary PostgreSQL service and runs the generated API integ
 - Required build-time environment validation
 - Workspace package resolution
 
-### `docker-build`
-
-- Build the API and web images
-- Start the CI Compose stack
-- Wait for health checks
-- Request frontend and backend health endpoints
-- Shut down the stack
-
-Pull requests never deploy images.
+Pull requests do not build or publish production images. Docker remains
+available for local development and verification.
 
 ## 4. Root commands
 
@@ -200,7 +192,6 @@ quality
 unit-tests
 integration-tests
 build
-docker-build
 ```
 
 The initial solo-development configuration requires zero human approvals while retaining all automated checks. Human approval becomes mandatory when collaborators join.
@@ -227,7 +218,7 @@ Documentation covers installation, local and Docker execution, testing, branches
 
 ## 12. Security checks
 
-Include secret scanning, dependency vulnerability reporting, Docker image scanning, minimal GitHub Actions permissions, pinned major Action versions, no production secrets in CI, and no sensitive values in logs.
+Include secret scanning, dependency vulnerability reporting, minimal GitHub Actions permissions, pinned major Action versions, no production secrets in CI, and no sensitive values in logs.
 
 Low-severity findings may initially warn. Confirmed high or critical findings block merging.
 
@@ -249,12 +240,12 @@ Every phase requires:
 
 Phase 0 is complete when:
 
-- Web and API Docker images build successfully.
-- The Compose stack starts locally.
+- Web and API Docker images remain available for local builds.
+- The local Compose stack starts successfully.
 - Web and API health checks pass.
 - Root quality and test commands work.
 - Every PR runs all required checks.
-- Failing tests or Docker builds prevent merging.
+- Failing quality, test, or application builds prevent merging.
 - Direct pushes to `main` are blocked.
 - Pull requests use the repository template.
 - Dependency updates arrive as pull requests.

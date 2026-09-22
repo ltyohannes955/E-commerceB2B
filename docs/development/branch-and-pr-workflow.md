@@ -19,8 +19,8 @@ delete the merged branch.
 ## Required GitHub settings
 
 After the repository owner enables these settings, require a pull request,
-require the `quality`, `unit-tests`, `integration-tests`, `build`, and
-`docker-build` checks, require branches to be up to date, require resolved
+require the `quality`, `unit-tests`, `integration-tests`, and `build` checks,
+require branches to be up to date, require resolved
 conversations, disallow force pushes and branch deletion, and allow squash
 merges. The initial solo workflow does not require human approvals. Require
 human approval when collaborators join.
