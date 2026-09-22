@@ -6,8 +6,7 @@ Run the full local engineering check with:
 pnpm check
 ```
 
-This checks formatting, lint, TypeScript, unit tests, and production builds.
-Run the individual checks with:
+This checks formatting, lint, TypeScript, unit tests, and production builds. Run the individual checks with:
 
 ```bash
 pnpm format:check
@@ -19,12 +18,6 @@ pnpm test:e2e
 pnpm build
 ```
 
-The web app uses Vitest, jsdom, and Testing Library. The API uses Jest. The
-current API integration and end-to-end suites exercise the generated HTTP
-application; PostgreSQL starts in CI, but no database-backed logic exists
-until Phase 1. Coverage reports are written under each app's `coverage/`
-directory without a Phase 0 percentage threshold.
+The web app uses Vitest, jsdom, Testing Library, and Playwright with Chromium desktop/mobile emulation. The API uses Jest. Database-backed Phase 1 verification requires PostgreSQL and the committed Prisma migration. Coverage reports are written under each app's `coverage/` directory without a percentage threshold.
 
-CI also checks dependency advisories, scans for committed secrets, builds and
-tests the Docker Compose stack, and scans application images for high and
-critical vulnerabilities.
+CI also checks dependency advisories, scans for committed secrets, runs the PostgreSQL-backed API integration suite, builds both applications, and runs browser smoke tests. Docker image scanning is intentionally not part of CI.

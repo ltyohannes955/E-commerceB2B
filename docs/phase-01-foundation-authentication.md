@@ -141,7 +141,7 @@ GET    /admin/users
 GET    /admin/users/:id
 PATCH  /admin/users/:id/status
 
-GET    /health
+GET    /api/health
 ```
 
 ## 7. Development infrastructure
@@ -192,3 +192,7 @@ Phase 1 is complete when:
 - Email verification
 - Social login
 - SMS or OTP authentication
+
+## Implementation notes
+
+Phase 1 uses Prisma migrations in `apps/api/prisma`, Argon2id password hashes, short-lived access cookies, rotating refresh sessions, signed double-submit CSRF protection, and a same-origin Next.js `/api/backend/*` rewrite to the Nest API. Reset delivery is development-only until an email provider is selected. The UI uses the trade-corridor design direction, responsive Tailwind v4 tokens, shadcn-compatible primitives, and an original hero asset at `apps/web/public/trade-corridor-hero.png`.
