@@ -3,7 +3,20 @@ import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { loadEnvFile } from 'node:process';
+
+for (const envPath of [
+  resolve(process.cwd(), '.env'),
+  resolve(process.cwd(), '../../.env'),
+  resolve(process.cwd(), 'apps/api/.env'),
+]) {
+  try {
+    loadEnvFile(envPath);
+  } catch {
+    // Optional local environment files are loaded when present.
+  }
+}
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error('DATABASE_URL is required');
