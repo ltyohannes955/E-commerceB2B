@@ -1,13 +1,15 @@
-import { SiteShell } from '@/components/site-shell';
 import { AdminCatalogList } from '@/components/admin-catalog';
-export default function AdminCatalogPage() {
+export default async function AdminCatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ product?: string }>;
+}) {
+  const { product } = await searchParams;
   return (
-    <SiteShell>
-      <section className="section">
-        <div className="shell">
-          <AdminCatalogList />
-        </div>
-      </section>
-    </SiteShell>
+    <section className="section">
+      <div className="shell">
+        <AdminCatalogList initialProduct={product} />
+      </div>
+    </section>
   );
 }

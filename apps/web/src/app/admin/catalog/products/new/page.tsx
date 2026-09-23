@@ -1,13 +1,4 @@
-import { SiteShell } from '@/components/site-shell';
-import { ProductEditor } from '@/components/admin-catalog';
+import { redirect } from 'next/navigation';
 export default function NewProductPage() {
-  return (
-    <SiteShell>
-      <section className="section">
-        <div className="shell">
-          <ProductEditor />
-        </div>
-      </section>
-    </SiteShell>
-  );
+  redirect('/admin/catalog?product=new');
 }

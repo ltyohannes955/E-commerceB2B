@@ -53,7 +53,11 @@ export class ProblemDetailsFilter implements ExceptionFilter {
             'The request could not be completed.'),
       code,
       requestId: request.headers['x-request-id'] ?? undefined,
-      errors: Array.isArray(body.message) ? body.message : undefined,
+      errors: Array.isArray(body.errors)
+        ? body.errors
+        : Array.isArray(body.message)
+          ? body.message
+          : undefined,
     });
   }
 }

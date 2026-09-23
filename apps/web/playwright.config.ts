@@ -3,7 +3,10 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   reporter: 'list',
-  use: { baseURL: 'http://127.0.0.1:3000', trace: 'retain-on-failure' },
+  use: {
+    baseURL: process.env.E2E_WEB_ORIGIN ?? 'http://127.0.0.1:3000',
+    trace: 'retain-on-failure',
+  },
   webServer: process.env.CI
     ? {
         command: 'pnpm exec next dev -p 3000',

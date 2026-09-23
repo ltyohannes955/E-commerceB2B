@@ -1,5 +1,6 @@
 import { AuthForm } from '@/components/auth-forms';
 import { SiteShell } from '@/components/site-shell';
+import { Suspense } from 'react';
 export default function SignUpPage() {
   return (
     <SiteShell>
@@ -10,7 +11,9 @@ export default function SignUpPage() {
           <p>
             Start with the basics. You can add optional contact details later.
           </p>
-          <AuthForm mode="register" />
+          <Suspense fallback={null}>
+            <AuthForm mode="register" />
+          </Suspense>
         </section>
       </div>
     </SiteShell>

@@ -3,7 +3,7 @@ test('public shell and responsive signup are available', async ({ page }) => {
   await page.goto('/');
   await expect(
     page.getByRole('heading', {
-      name: /Find the next thing your business needs/i,
+      name: /Stock your next order with less back and forth/i,
     }),
   ).toBeVisible();
   const menuButton = page.locator('summary[aria-label="Open menu"]');
@@ -46,9 +46,7 @@ test('customer can sign up through the same-origin API proxy in CI', async ({
   await page.goto('/sign-up');
   await page.getByLabel('Full name').fill('Phase One Customer');
   await page.getByLabel('Email').fill(email);
-  await page
-    .getByRole('textbox', { name: /^Password/ })
-    .fill('phase-one-password');
+  await page.getByLabel('Password', { exact: true }).fill('phase-one-password');
   await page.getByLabel(/draft Terms/i).check();
   await page.getByLabel(/draft Privacy/i).check();
   await page.getByRole('button', { name: 'Create account' }).click();

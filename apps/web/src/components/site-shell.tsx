@@ -11,13 +11,29 @@ import {
   X,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const loginHref = `/login?next=${encodeURIComponent(pathname || '/')}`;
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  function openLogin(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    event.preventDefault();
+    const current = `${window.location.pathname}${window.location.search}`;
+    router.push(`/login?next=${encodeURIComponent(current)}`);
+  }
 
   useEffect(() => {
     let active = true;
@@ -65,7 +81,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             mobile ? 'mobile-account-actions' : 'header-account-actions'
           }
         >
-          <Link href="/login" className="header-login">
+          <Link href={loginHref} onClick={openLogin} className="header-login">
             Log in
           </Link>
           <Link href="/sign-up" className="button button-small">
@@ -98,13 +114,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="storefront-app">
-      <div className="utility-bar">
-        <div className="shell utility-bar-inner">
-          <span>Dubai to Ethiopia trade desk</span>
-          <span>Prices shown in ETB</span>
-          <span>Business quantities welcome</span>
-        </div>
-      </div>
       <header className="site-header commerce-header">
         <div className="shell commerce-header-main">
           <Link href="/" className="wordmark" aria-label="E-commerce B2B home">
@@ -210,9 +219,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <strong>Account</strong>
-            <Link href="/login">Log in</Link>
+            <Link href={loginHref} onClick={openLogin}>
+              Log in
+            </Link>
             <Link href="/sign-up">Create account</Link>
             <Link href="/terms">Terms & privacy</Link>
+            <Link href="/admin/login">Admin sign in</Link>
           </div>
         </div>
         <div className="shell footer-bottom">
