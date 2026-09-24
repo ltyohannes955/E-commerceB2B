@@ -10,7 +10,7 @@ import {
 import { notFound } from 'next/navigation';
 import { SiteShell } from '@/components/site-shell';
 import {
-  DisabledActions,
+  ProductActions,
   PriceDisplay,
   ProductGallery,
 } from '@/components/catalog-ui';
@@ -88,7 +88,7 @@ export default async function ProductDetail({
                     ))}
                   </div>
                 )}
-                <DisabledActions saleMode={product.saleMode} />
+                <ProductActions product={product} />
               </div>
               <div className="purchase-assurance">
                 <div>

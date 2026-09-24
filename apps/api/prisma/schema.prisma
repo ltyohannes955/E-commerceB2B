@@ -34,6 +34,12 @@ model User {
   resetTokens       PasswordResetToken[]
   actedAuditLogs    AuditLog[]           @relation("AuditActor")
   targetAuditLogs   AuditLog[]           @relation("AuditTarget")
+  cart              Cart?
+  rfqs              Rfq[]                @relation("CustomerRfqs")
+  assignedRfqs      Rfq[]                @relation("AssignedRfqs")
+  quotesCreated     Quote[]              @relation("QuoteCreator")
+  rfqStatusHistory  RfqStatusHistory[]   @relation("RfqStatusActor")
+  quoteStatusHistory QuoteStatusHistory[] @relation("QuoteStatusActor")
 
   @@index([status, createdAt])
   @@index([role, createdAt])
@@ -121,6 +127,35 @@ enum VariantPriceMode {
   FIXED
 }
 
+enum RfqStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  QUOTED
+  CANCELLED
+  CLOSED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  REPLACED
+}
+
+enum QuoteAdjustmentKind {
+  CHARGE
+  DISCOUNT
+}
+
+enum EmailOutboxStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 model Category {
   id          String     @id @default(uuid()) @db.Uuid
   name        String     @db.VarChar(120)
@@ -186,6 +221,8 @@ model Product {
   images                    ProductImage[]
   specifications            ProductSpecification[]
   priceTiers                PriceTier[]
+  cartItems                 CartItem[]
+  rfqItems                  RfqItem[]
 
   @@index([status, featured, createdAt])
   @@index([status, categoryId, createdAt])
@@ -213,6 +250,8 @@ model ProductVariant {
   product           Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
   image             ProductImage?       @relation("VariantImage", fields: [imageId], references: [id], onDelete: SetNull)
   priceTiers        PriceTier[]
+  cartItems         CartItem[]
+  rfqItems          RfqItem[]
 
   @@index([productId, sortOrder])
   @@index([productId, availability])
@@ -262,4 +301,198 @@ model PriceTier {
 
   @@index([productId, minimumQuantity])
   @@index([variantId, minimumQuantity])
+}
+
+model Cart {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @unique @db.Uuid
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id                String          @id @default(uuid()) @db.Uuid
+  cartId            String          @db.Uuid
+  productId         String?         @db.Uuid
+  variantId         String?         @db.Uuid
+  productName       String          @db.VarChar(240)
+  variantName       String          @db.VarChar(160)
+  sku               String          @db.VarChar(100)
+  unit              String          @db.VarChar(40)
+  imageSrc          String?
+  quantity          Int
+  unitPriceSnapshot Decimal         @db.Decimal(14, 2)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  cart              Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product           Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant           ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@unique([cartId, variantId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model Rfq {
+  id                String            @id @default(uuid()) @db.Uuid
+  reference         String            @unique @db.VarChar(40)
+  title             String            @db.VarChar(120)
+  userId            String            @db.Uuid
+  assignedAdminId   String?           @db.Uuid
+  status            RfqStatus         @default(DRAFT)
+  version           Int               @default(1)
+  message           String?           @db.Text
+  deliveryTimeframe String?           @db.VarChar(160)
+  deliveryCity      String?           @db.VarChar(120)
+  preferredContact  String?           @db.VarChar(40)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  submittedAt       DateTime?
+  cancelledAt       DateTime?
+  user              User              @relation("CustomerRfqs", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAdmin     User?             @relation("AssignedRfqs", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  items             RfqItem[]
+  statusHistory     RfqStatusHistory[]
+  quotes            Quote[]
+
+  @@index([userId, status, updatedAt])
+  @@index([status, updatedAt])
+  @@index([assignedAdminId, status, updatedAt])
+}
+
+model RfqItem {
+  id                String          @id @default(uuid()) @db.Uuid
+  rfqId             String          @db.Uuid
+  productId         String?         @db.Uuid
+  variantId         String?         @db.Uuid
+  productName       String          @db.VarChar(240)
+  variantName       String          @db.VarChar(160)
+  sku               String          @db.VarChar(100)
+  unit              String          @db.VarChar(40)
+  imageSrc          String?
+  requestedQuantity Int
+  adjustedQuantity  Int?
+  adjustmentReason  String?         @db.VarChar(500)
+  note              String?         @db.VarChar(1000)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  rfq               Rfq             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  product           Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant           ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  quoteItems        QuoteItem[]
+
+  @@unique([rfqId, variantId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model RfqStatusHistory {
+  id          String    @id @default(uuid()) @db.Uuid
+  rfqId       String    @db.Uuid
+  actorUserId String?   @db.Uuid
+  fromStatus  RfqStatus?
+  toStatus    RfqStatus
+  note        String?   @db.VarChar(500)
+  createdAt   DateTime  @default(now())
+  rfq         Rfq       @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  actor       User?     @relation("RfqStatusActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([rfqId, createdAt])
+}
+
+model Quote {
+  id                    String              @id @default(uuid()) @db.Uuid
+  quoteNumber           String              @unique @db.VarChar(48)
+  rfqId                 String              @db.Uuid
+  createdById           String              @db.Uuid
+  revision              Int
+  version               Int                 @default(1)
+  status                QuoteStatus         @default(DRAFT)
+  currency              String              @default("ETB") @db.Char(3)
+  subtotal              Decimal             @db.Decimal(14, 2)
+  adjustmentTotal       Decimal             @db.Decimal(14, 2)
+  grandTotal             Decimal             @db.Decimal(14, 2)
+  estimatedLeadTimeDays Int?
+  paymentTerms          String?             @db.VarChar(240)
+  expiresAt             DateTime?
+  customerNotes         String?             @db.Text
+  internalNotes         String?             @db.Text
+  declineReason         String?             @db.VarChar(500)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  sentAt                DateTime?
+  acceptedAt            DateTime?
+  declinedAt            DateTime?
+  rfq                   Rfq                 @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  createdBy             User                @relation("QuoteCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  items                 QuoteItem[]
+  adjustments           QuoteAdjustment[]
+  statusHistory         QuoteStatusHistory[]
+
+  @@unique([rfqId, revision])
+  @@index([status, updatedAt])
+  @@index([rfqId, createdAt])
+}
+
+model QuoteItem {
+  id           String    @id @default(uuid()) @db.Uuid
+  quoteId      String    @db.Uuid
+  rfqItemId    String?   @db.Uuid
+  productName  String    @db.VarChar(240)
+  variantName  String    @db.VarChar(160)
+  sku          String    @db.VarChar(100)
+  unit         String    @db.VarChar(40)
+  quantity     Int
+  unitPrice    Decimal   @db.Decimal(14, 2)
+  lineSubtotal Decimal   @db.Decimal(14, 2)
+  createdAt    DateTime  @default(now())
+  quote        Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  rfqItem      RfqItem?  @relation(fields: [rfqItemId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+}
+
+model QuoteAdjustment {
+  id        String              @id @default(uuid()) @db.Uuid
+  quoteId   String              @db.Uuid
+  kind      QuoteAdjustmentKind
+  label     String              @db.VarChar(160)
+  amount    Decimal             @db.Decimal(14, 2)
+  sortOrder Int                 @default(0)
+  quote     Quote               @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, sortOrder])
+}
+
+model QuoteStatusHistory {
+  id          String      @id @default(uuid()) @db.Uuid
+  quoteId     String      @db.Uuid
+  actorUserId String?     @db.Uuid
+  fromStatus  QuoteStatus?
+  toStatus    QuoteStatus
+  note        String?     @db.VarChar(500)
+  createdAt   DateTime    @default(now())
+  quote       Quote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  actor       User?       @relation("QuoteStatusActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId, createdAt])
+}
+
+model EmailOutbox {
+  id           String            @id @default(uuid()) @db.Uuid
+  kind         String            @db.VarChar(80)
+  recipient    String            @db.VarChar(320)
+  subject      String            @db.VarChar(240)
+  payload      Json
+  status       EmailOutboxStatus @default(PENDING)
+  attempts     Int               @default(0)
+  availableAt  DateTime          @default(now())
+  lastError    String?           @db.VarChar(1000)
+  sentAt       DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([status, availableAt])
 }

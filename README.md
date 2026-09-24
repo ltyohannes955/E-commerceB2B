@@ -52,6 +52,8 @@ Start the full production-like Compose stack with:
 
 Phase 2 adds the public catalog and administrator product management. Run `pnpm db:migrate` after PostgreSQL is available and configure the admin seed values in `.env`. Set `CATALOG_SEED_ENABLED=true` only for local development or CI to load the deterministic demo catalog; production should leave it disabled. Catalog images are stored as optimized WebP binaries in PostgreSQL and served from `/api/product-images/:id` through the same-origin web proxy.
 
+Phase 3 adds authenticated carts, multi-draft quote requests, administrator quotations, quote revisions, and printable quote views. Cart and quotation mutations require an authenticated customer or administrator session and use the existing same-origin API proxy. Quote emails use the console outbox by default; configure `EMAIL_TRANSPORT=smtp` and the SMTP variables when a mail transport is available. Checkout, orders, inventory reservation, and payments remain deferred to Phase 4.
+
 Health endpoints are GET /_health and GET /api/health. GET / preserves the
 generated NestJS example.
 

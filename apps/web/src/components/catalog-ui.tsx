@@ -5,6 +5,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { ArrowRight, ArrowUpRight, Funnel, X } from '@phosphor-icons/react';
 import {
   availabilityLabel,
@@ -12,6 +14,7 @@ import {
   formatEtb,
   imageUrl,
 } from '@/lib/catalog';
+import { commerceFetch, commerceMutate, Rfq, Cart } from '@/lib/commerce-api';
 
 export function PriceDisplay({ product }: { product: CatalogProduct }) {
   if (product.priceVisibility === 'HIDE_PRICE' || !product.regularPrice)
@@ -204,18 +207,226 @@ export function ProductGallery({ product }: { product: CatalogProduct }) {
   );
 }
 
-export function DisabledActions({ saleMode }: { saleMode: string }) {
+export function ProductActions({ product }: { product: CatalogProduct }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [variantId, setVariantId] = useState(product.variants[0]?.id ?? '');
+  const [quantity, setQuantity] = useState(product.minimumOrderQuantity);
+  const [busy, setBusy] = useState(false);
+  const [rfqs, setRfqs] = useState<Rfq[]>([]);
+  const [rfqOpen, setRfqOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState(`Quote request for ${product.name}`);
+  const variant =
+    product.variants.find((item) => item.id === variantId) ??
+    product.variants[0];
+  const canCart =
+    product.saleMode !== 'RFQ_ONLY' &&
+    (!product.directPurchaseMaxQuantity ||
+      quantity <= product.directPurchaseMaxQuantity) &&
+    (!product.rfqThreshold || quantity < product.rfqThreshold);
+  const canRfq =
+    product.saleMode !== 'DIRECT_PURCHASE' || product.allowRfqAtAnyQuantity;
+
+  useEffect(() => {
+    // Restore the requested action after the login flow.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (searchParams.get('intent') === 'quote') setRfqOpen(true);
+  }, [searchParams]);
+
+  async function requireAuth(intent: 'cart' | 'quote') {
+    const response = await fetch('/api/backend/users/me', {
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      const next = `${pathname}${window.location.search}`;
+      router.push(
+        `/login?next=${encodeURIComponent(`${next}${next.includes('?') ? '&' : '?'}intent=${intent}`)}`,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  async function addCart() {
+    if (!variant || !canCart || !(await requireAuth('cart'))) return;
+    setBusy(true);
+    try {
+      await commerceMutate<Cart>('/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({ variantId: variant.id, quantity }),
+      });
+      toast.success('Added to cart', {
+        description: `${quantity} ${product.unit} of ${product.name}`,
+      });
+    } catch (error) {
+      toast.error('Could not add to cart', {
+        description:
+          error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openQuote() {
+    if (!(await requireAuth('quote'))) return;
+    setBusy(true);
+    try {
+      const data = await commerceFetch<{ items: Rfq[] }>('/rfqs?pageSize=50');
+      setRfqs(data.items.filter((item) => item.status === 'DRAFT'));
+      setRfqOpen(true);
+    } catch (error) {
+      toast.error('Could not load quote drafts', {
+        description:
+          error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addToQuote(rfqId?: string) {
+    if (!variant) return;
+    setBusy(true);
+    try {
+      if (rfqId)
+        await commerceMutate(`/rfqs/${rfqId}/items`, {
+          method: 'POST',
+          body: JSON.stringify({ variantId: variant.id, quantity }),
+        });
+      else
+        await commerceMutate('/rfqs', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: newTitle,
+            variantId: variant.id,
+            quantity,
+          }),
+        });
+      setRfqOpen(false);
+      toast.success('Added to quote request');
+    } catch (error) {
+      toast.error('Could not add to quote request', {
+        description:
+          error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="product-actions">
-      <button className="button" disabled>
-        {saleMode !== 'RFQ_ONLY' ? 'Add to cart' : 'Cart unavailable'}
-      </button>
-      <button className="button button-secondary" disabled>
-        {saleMode !== 'DIRECT_PURCHASE'
-          ? 'Request a quote'
-          : 'Quote unavailable'}
-      </button>
-      <small>Cart and quote actions arrive in Phase 3.</small>
+      {product.variants.length > 1 && (
+        <label>
+          Variant
+          <select
+            className="field"
+            value={variantId}
+            onChange={(event) => setVariantId(event.target.value)}
+          >
+            {product.variants.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.sku}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <label>
+        Quantity
+        <input
+          className="field"
+          type="number"
+          min={product.minimumOrderQuantity}
+          value={quantity}
+          onChange={(event) =>
+            setQuantity(
+              Math.max(
+                product.minimumOrderQuantity,
+                Number(event.target.value) || product.minimumOrderQuantity,
+              ),
+            )
+          }
+        />
+      </label>
+      <div className="product-action-row">
+        <button
+          className="button"
+          type="button"
+          disabled={busy || !canCart}
+          onClick={addCart}
+        >
+          {busy
+            ? 'Working…'
+            : canCart
+              ? 'Add to cart'
+              : 'Request a quote for this quantity'}
+        </button>
+        {canRfq && (
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={busy}
+            onClick={openQuote}
+          >
+            Request a quote
+          </button>
+        )}
+      </div>
+      {!canCart && product.rfqThreshold ? (
+        <small>Quantities of {product.rfqThreshold}+ require a quote.</small>
+      ) : null}
+      {rfqOpen && (
+        <dialog open className="commerce-dialog">
+          <div className="dialog-heading">
+            <div>
+              <span className="eyebrow">Request a quote</span>
+              <h2>Choose a draft</h2>
+            </div>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={() => setRfqOpen(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+          <div className="rfq-draft-options">
+            <button
+              type="button"
+              className="draft-option"
+              onClick={() => addToQuote()}
+            >
+              <strong>New request</strong>
+              <span>{newTitle}</span>
+            </button>
+            {rfqs.map((rfq) => (
+              <button
+                type="button"
+                className="draft-option"
+                key={rfq.id}
+                onClick={() => addToQuote(rfq.id)}
+              >
+                <strong>{rfq.title}</strong>
+                <span>
+                  {rfq.reference} · {rfq.items.length} items
+                </span>
+              </button>
+            ))}
+          </div>
+          <label>
+            New request title
+            <input
+              className="field"
+              value={newTitle}
+              onChange={(event) => setNewTitle(event.target.value)}
+            />
+          </label>
+        </dialog>
+      )}
     </div>
   );
 }

@@ -13,12 +13,14 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Toaster } from 'sonner';
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const loginHref = `/login?next=${encodeURIComponent(pathname || '/')}`;
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(false);
+  const [cartCount, setCartCount] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
 
   function openLogin(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -39,7 +41,16 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     let active = true;
     fetch('/api/backend/users/me', { credentials: 'include' })
       .then((response) => {
-        if (active) setIsAuthenticated(response.ok);
+        if (active) {
+          setIsAuthenticated(response.ok);
+          if (response.ok)
+            fetch('/api/backend/cart', { credentials: 'include' })
+              .then((cart) => (cart.ok ? cart.json() : null))
+              .then((data: { itemCount?: number } | null) => {
+                if (active) setCartCount(data?.itemCount ?? 0);
+              })
+              .catch(() => undefined);
+        }
       })
       .catch(() => {
         if (active) setIsAuthenticated(false);
@@ -103,6 +114,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <Link href="/account/profile">
             <UserCircle size={17} aria-hidden="true" /> Profile
           </Link>
+          <Link href="/account/rfqs">Quote requests</Link>
+          <Link href="/account/quotes">Quotations</Link>
+          <Link href="/cart">Cart</Link>
           <button type="button" onClick={logout} disabled={loggingOut}>
             <SignOut size={17} aria-hidden="true" />{' '}
             {loggingOut ? 'Logging out...' : 'Log out'}
@@ -136,16 +150,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </form>
           <div className="header-actions">
             {accountActions()}
-            <button
-              className="bag-button"
-              type="button"
-              disabled
-              title="Cart arrives in Phase 3"
-            >
+            <Link className="bag-button" href="/cart">
               <ShoppingBagOpen size={20} aria-hidden="true" />
               <span>Cart</span>
-              <em>Phase 3</em>
-            </button>
+              {cartCount > 0 && <em>{cartCount}</em>}
+            </Link>
           </div>
           <details className="mobile-menu">
             <summary
@@ -167,6 +176,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               </form>
               <nav className="mobile-nav-links" aria-label="Mobile navigation">
                 <Link href="/products">All products</Link>
+                <Link href="/cart">Cart</Link>
+                <Link href="/account/rfqs">Quote requests</Link>
+                <Link href="/account/quotes">Quotations</Link>
                 <Link href="/categories/industrial-equipment">Categories</Link>
                 <Link href="/brands/lumaforge">Brands</Link>
                 <Link href="/how-it-works">How it works</Link>
@@ -177,6 +189,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="shell commerce-nav" aria-label="Primary navigation">
           <Link href="/products">All products</Link>
+          <Link href="/cart">Cart</Link>
           <Link href="/categories/industrial-equipment">
             Industrial equipment
           </Link>
@@ -194,6 +207,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
       <main>{children}</main>
+      <Toaster position="top-right" />
       <footer className="storefront-footer">
         <div className="shell footer-grid">
           <div>

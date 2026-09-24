@@ -5,6 +5,8 @@ import {
   Buildings,
   ChartBar,
   ClockCounterClockwise,
+  ChatText,
+  FileText,
   List,
   Package,
   SquaresFour,
@@ -33,6 +35,8 @@ const sections = [
   { href: '/admin/brands', label: 'Brands', icon: Buildings },
   { href: '/admin/users', label: 'Customers', icon: Users },
   { href: '/admin/audit', label: 'Audit history', icon: ClockCounterClockwise },
+  { href: '/admin/rfqs', label: 'Quote requests', icon: ChatText },
+  { href: '/admin/quotes', label: 'Quotations', icon: FileText },
 ];
 
 async function currentUser(): Promise<Response> {
@@ -162,7 +166,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const activeSection =
     sections.find((section) => section.href === pathname) ??
-    (pathname.startsWith('/admin/catalog/') ? sections[1] : sections[0]);
+    sections.find((section) => pathname.startsWith(`${section.href}/`)) ??
+    sections[0];
 
   return (
     <>
@@ -206,9 +211,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <nav className="admin-nav" aria-label="Admin navigation">
             {sections.map(({ href, label, icon: Icon }) => {
               const active =
-                href === '/admin/catalog'
-                  ? pathname.startsWith(href)
-                  : pathname === href;
+                pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <Link
                   key={href}

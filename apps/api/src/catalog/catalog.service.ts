@@ -487,7 +487,6 @@ export class CatalogService {
     dto: ProductCreateDto,
   ) {
     if (dto.variants !== undefined) {
-      await tx.productVariant.deleteMany({ where: { productId } });
       const variants = dto.variants.length
         ? dto.variants
         : [
@@ -498,37 +497,62 @@ export class CatalogService {
               priceMode: VariantPriceMode.INHERIT,
             },
           ];
+      const existing = await tx.productVariant.findMany({
+        where: { productId },
+        select: { id: true },
+      });
+      const existingIds = new Set(existing.map((variant) => variant.id));
+      const retainedIds: string[] = [];
       for (const [index, variant] of variants.entries()) {
-        const created = await tx.productVariant.create({
-          data: {
-            productId,
-            sku: variant.sku.trim(),
-            name: variant.name.trim(),
-            attributes: variant.attributes,
-            priceMode: variant.priceMode ?? VariantPriceMode.INHERIT,
-            priceAdjustment: decimal(variant.priceAdjustment),
-            fixedPrice: decimal(variant.fixedPrice),
-            availability:
-              variant.availability ??
-              dto.availability ??
-              ProductAvailability.AVAILABLE_TO_ORDER,
-            availableQuantity: variant.availableQuantity ?? null,
-            imageId: variant.imageId ?? null,
-            isDefault: index === 0,
-            sortOrder: variant.sortOrder ?? index,
-          },
+        if (variant.id && !existingIds.has(variant.id))
+          throw new BadRequestException({
+            code: 'VARIANT_NOT_FOUND',
+            detail: 'A submitted variant does not belong to this product.',
+          });
+        const data = {
+          sku: variant.sku.trim(),
+          name: variant.name.trim(),
+          attributes: variant.attributes,
+          priceMode: variant.priceMode ?? VariantPriceMode.INHERIT,
+          priceAdjustment: decimal(variant.priceAdjustment),
+          fixedPrice: decimal(variant.fixedPrice),
+          availability:
+            variant.availability ??
+            dto.availability ??
+            ProductAvailability.AVAILABLE_TO_ORDER,
+          availableQuantity: variant.availableQuantity ?? null,
+          imageId: variant.imageId ?? null,
+          isDefault: index === 0,
+          sortOrder: variant.sortOrder ?? index,
+        };
+        const saved = variant.id
+          ? await tx.productVariant.update({
+              where: { id: variant.id },
+              data,
+            })
+          : await tx.productVariant.create({
+              data: { ...data, productId },
+            });
+        retainedIds.push(saved.id);
+        await tx.priceTier.deleteMany({
+          where: { productId, variantId: saved.id },
         });
-        for (const tier of variant.priceTiers ?? []) {
-          await tx.priceTier.create({
-            data: {
+        if (variant.priceTiers?.length)
+          await tx.priceTier.createMany({
+            data: variant.priceTiers.map((tier) => ({
               productId,
-              variantId: created.id,
+              variantId: saved.id,
               minimumQuantity: tier.minimumQuantity,
               unitPrice: decimal(tier.unitPrice)!,
-            },
+            })),
           });
-        }
       }
+      await tx.productVariant.deleteMany({
+        where: {
+          productId,
+          ...(retainedIds.length ? { id: { notIn: retainedIds } } : {}),
+        },
+      });
     }
     if (dto.specifications !== undefined) {
       await tx.productSpecification.deleteMany({ where: { productId } });

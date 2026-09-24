@@ -15,6 +15,8 @@ export type CatalogVariant = {
   price: string | null;
   availability: string;
   priceTiers: CatalogTier[];
+  image?: CatalogImage | null;
+  availableQuantity?: number | null;
 };
 export type CatalogProduct = {
   id: string;
@@ -42,6 +44,9 @@ export type CatalogProduct = {
   variants: CatalogVariant[];
   specifications: { groupName: string; name: string; value: string }[];
   priceTiers: CatalogTier[];
+  allowRfqAtAnyQuantity?: boolean;
+  directPurchaseMaxQuantity?: number | null;
+  rfqThreshold?: number | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
 };
