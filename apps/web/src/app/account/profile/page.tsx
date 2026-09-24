@@ -23,7 +23,7 @@ export default function ProfilePage() {
     fetch('/api/backend/users/me', { credentials: 'include' }).then(
       async (r) => {
         if (!r.ok) {
-          router.replace('/login');
+          router.replace('/login?next=%2Faccount%2Fprofile');
           return;
         }
         setUser(await r.json());

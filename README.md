@@ -45,12 +45,12 @@ Start the full production-like Compose stack with:
     pnpm check                Run formatting, lint, type, unit, and build checks
     pnpm db:generate          Generate the Prisma client
     pnpm db:migrate           Apply local Prisma migrations
-    pnpm db:seed              Ensure the configured admin account exists
+    pnpm db:seed              Ensure admin account and optional catalog fixtures exist
     pnpm docker:build         Build local production images
     pnpm docker:up            Build and start the Compose stack
     pnpm docker:down          Stop the Compose stack
 
-Phase 1 adds basic customer signup/login, account security, and an admin customer directory. Run `pnpm db:migrate` after PostgreSQL is available and configure the admin seed values in `.env`.
+Phase 2 adds the public catalog and administrator product management. Run `pnpm db:migrate` after PostgreSQL is available and configure the admin seed values in `.env`. Set `CATALOG_SEED_ENABLED=true` only for local development or CI to load the deterministic demo catalog; production should leave it disabled. Catalog images are stored as optimized WebP binaries in PostgreSQL and served from `/api/product-images/:id` through the same-origin web proxy.
 
 Health endpoints are GET /_health and GET /api/health. GET / preserves the
 generated NestJS example.

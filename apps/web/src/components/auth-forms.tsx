@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { afterLoginPath, type AccountRole } from '@/lib/auth-routing';
 
 export async function csrfFetch(path: string, init: RequestInit = {}) {
   const csrf = await fetch('/api/backend/auth/csrf', {
@@ -36,11 +37,13 @@ export function PasswordField({
   hint,
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
+  const inputId = `${name}-field`;
   return (
-    <label>
-      {label}
+    <div className="password-field">
+      <label htmlFor={inputId}>{label}</label>
       <span className="password-input">
         <input
+          id={inputId}
           name={name}
           type={visible ? 'text' : 'password'}
           required={required}
@@ -62,12 +65,19 @@ export function PasswordField({
         </button>
       </span>
       {hint ? <span className="field-hint">{hint}</span> : null}
-    </label>
+    </div>
   );
 }
 
-export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+export function AuthForm({
+  mode,
+  audience = 'customer',
+}: {
+  mode: 'login' | 'register';
+  audience?: 'customer' | 'admin';
+}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -94,7 +104,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         const data = await response.json();
         throw new Error(data.detail ?? 'Unable to complete request.');
       }
-      router.push('/account/profile');
+      const user = (await response.json()) as { role: AccountRole };
+      const destination =
+        mode === 'register'
+          ? '/account/profile'
+          : afterLoginPath(user.role, searchParams.get('next'));
+      router.replace(destination);
       router.refresh();
     } catch (cause) {
       setError(
@@ -145,7 +160,13 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         </p>
       )}
       <button className="button button-wide" disabled={busy}>
-        {busy ? 'Working…' : mode === 'register' ? 'Create account' : 'Log in'}
+        {busy
+          ? 'Working…'
+          : mode === 'register'
+            ? 'Create account'
+            : audience === 'admin'
+              ? 'Sign in to admin'
+              : 'Log in'}
       </button>
       {mode === 'login' ? (
         <p className="form-footnote">

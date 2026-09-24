@@ -88,6 +88,11 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: ecommerce-ci-integration
       COMPOSE_FILE: compose.yaml:compose.ci.yaml
+      DATABASE_URL: postgresql://commerce:commerce_dev_password@localhost:5432/ecommerce?schema=public
+      ADMIN_FULL_NAME: CI Catalog Admin
+      ADMIN_EMAIL: admin-ci@example.com
+      ADMIN_PASSWORD: ci-admin-password-please-change
+      CATALOG_SEED_ENABLED: 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -103,6 +108,12 @@ jobs:
 
       - name: Start PostgreSQL and wait for health
         run: docker compose up --wait --wait-timeout 90 postgres
+
+      - name: Generate Prisma Client and apply migrations
+        run: pnpm db:migrate:deploy
+
+      - name: Seed deterministic catalog fixtures
+        run: pnpm db:seed
 
       - name: Run API integration and end-to-end tests
         run: pnpm test:integration

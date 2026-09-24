@@ -10,29 +10,31 @@ enum UserRole {
   CUSTOMER
   ADMIN
 }
+
 enum UserStatus {
   ACTIVE
   SUSPENDED
 }
 
 model User {
-  id                String     @id @default(uuid()) @db.Uuid
+  id                String               @id @default(uuid()) @db.Uuid
   fullName          String
-  email             String     @unique @db.VarChar(320)
-  phone             String?    @db.VarChar(32)
+  email             String               @unique @db.VarChar(320)
+  phone             String?              @db.VarChar(32)
   passwordHash      String
-  role              UserRole   @default(CUSTOMER)
-  status            UserStatus @default(ACTIVE)
+  role              UserRole             @default(CUSTOMER)
+  status            UserStatus           @default(ACTIVE)
   lastLoginAt       DateTime?
   termsAcceptedAt   DateTime
   privacyAcceptedAt DateTime
-  legalVersion      String     @default("phase1-draft")
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  legalVersion      String               @default("phase1-draft")
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
   sessions          Session[]
   resetTokens       PasswordResetToken[]
-  actedAuditLogs    AuditLog[] @relation("AuditActor")
-  targetAuditLogs   AuditLog[] @relation("AuditTarget")
+  actedAuditLogs    AuditLog[]           @relation("AuditActor")
+  targetAuditLogs   AuditLog[]           @relation("AuditTarget")
+
   @@index([status, createdAt])
   @@index([role, createdAt])
 }
@@ -50,6 +52,7 @@ model Session {
   ipAddress           String?   @db.VarChar(64)
   createdAt           DateTime  @default(now())
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, revokedAt])
   @@index([familyId])
 }
@@ -62,6 +65,7 @@ model PasswordResetToken {
   usedAt    DateTime?
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, expiresAt])
 }
 
@@ -76,8 +80,186 @@ model AuditLog {
   createdAt    DateTime @default(now())
   actor        User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
   target       User?    @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
   @@index([targetUserId, createdAt])
   @@index([action, createdAt])
 }
 
+enum ProductKind {
+  SIMPLE
+  CONFIGURABLE
+}
 
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProductAvailability {
+  IN_STOCK
+  AVAILABLE_TO_ORDER
+  PRE_ORDER
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+enum ProductSaleMode {
+  DIRECT_PURCHASE
+  RFQ_ONLY
+  HYBRID
+}
+
+enum ProductPriceVisibility {
+  SHOW_PRICE
+  HIDE_PRICE
+}
+
+enum VariantPriceMode {
+  INHERIT
+  ADJUSTMENT
+  FIXED
+}
+
+model Category {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String     @db.VarChar(120)
+  slug        String     @unique @db.VarChar(160)
+  description String?    @db.Text
+  parentId    String?    @db.Uuid
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+
+  @@index([parentId, sortOrder])
+}
+
+model Brand {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(120)
+  slug        String    @unique @db.VarChar(160)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id                        String                 @id @default(uuid()) @db.Uuid
+  name                      String                 @db.VarChar(240)
+  slug                      String                 @unique @db.VarChar(180)
+  shortDescription          String?                @db.VarChar(500)
+  fullDescription           String?                @db.Text
+  categoryId                String                 @db.Uuid
+  brandId                   String?                @db.Uuid
+  internalSku               String                 @unique @db.VarChar(100)
+  unit                      String                 @db.VarChar(40)
+  countryOfOrigin           String                 @db.Char(2)
+  minimumOrderQuantity      Int                    @default(1)
+  leadTimeDays              Int?
+  leadTimeNote              String?                @db.VarChar(240)
+  availability              ProductAvailability    @default(AVAILABLE_TO_ORDER)
+  saleMode                  ProductSaleMode        @default(DIRECT_PURCHASE)
+  priceVisibility           ProductPriceVisibility @default(SHOW_PRICE)
+  currency                  String                 @default("ETB") @db.Char(3)
+  regularPrice              Decimal?               @db.Decimal(14, 2)
+  discountPrice             Decimal?               @db.Decimal(14, 2)
+  discountStartAt           DateTime?
+  discountEndAt             DateTime?
+  showStartingFrom          Boolean                @default(false)
+  allowRfqAtAnyQuantity     Boolean                @default(false)
+  directPurchaseMaxQuantity Int?
+  rfqThreshold              Int?
+  productKind               ProductKind            @default(SIMPLE)
+  featured                  Boolean                @default(false)
+  status                    ProductStatus          @default(DRAFT)
+  seoTitle                  String?                @db.VarChar(240)
+  seoDescription            String?                @db.VarChar(500)
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  category                  Category               @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand                     Brand?                 @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  variants                  ProductVariant[]
+  images                    ProductImage[]
+  specifications            ProductSpecification[]
+  priceTiers                PriceTier[]
+
+  @@index([status, featured, createdAt])
+  @@index([status, categoryId, createdAt])
+  @@index([status, brandId, createdAt])
+  @@index([status, availability, createdAt])
+  @@index([status, saleMode, createdAt])
+}
+
+model ProductVariant {
+  id                String              @id @default(uuid()) @db.Uuid
+  productId         String              @db.Uuid
+  sku               String              @unique @db.VarChar(100)
+  name              String              @db.VarChar(160)
+  attributes        Json
+  priceMode         VariantPriceMode    @default(INHERIT)
+  priceAdjustment   Decimal?            @db.Decimal(14, 2)
+  fixedPrice        Decimal?            @db.Decimal(14, 2)
+  availability      ProductAvailability @default(AVAILABLE_TO_ORDER)
+  availableQuantity Int?
+  imageId           String?             @db.Uuid
+  isDefault         Boolean             @default(false)
+  sortOrder         Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  product           Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  image             ProductImage?       @relation("VariantImage", fields: [imageId], references: [id], onDelete: SetNull)
+  priceTiers        PriceTier[]
+
+  @@index([productId, sortOrder])
+  @@index([productId, availability])
+}
+
+model ProductImage {
+  id               String           @id @default(uuid()) @db.Uuid
+  productId        String           @db.Uuid
+  data             String           @db.Text
+  mimeType         String           @db.VarChar(80)
+  originalFileName String           @db.VarChar(255)
+  byteSize         Int
+  altText          String           @db.VarChar(240)
+  sortOrder        Int              @default(0)
+  isPrimary        Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  product          Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants         ProductVariant[] @relation("VariantImage")
+
+  @@index([productId, sortOrder])
+  @@index([productId, isPrimary])
+}
+
+model ProductSpecification {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  groupName String   @db.VarChar(100)
+  name      String   @db.VarChar(120)
+  value     String   @db.VarChar(500)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, groupName, sortOrder])
+}
+
+model PriceTier {
+  id              String          @id @default(uuid()) @db.Uuid
+  productId       String          @db.Uuid
+  variantId       String?         @db.Uuid
+  minimumQuantity Int
+  unitPrice       Decimal         @db.Decimal(14, 2)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant         ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([productId, minimumQuantity])
+  @@index([variantId, minimumQuantity])
+}

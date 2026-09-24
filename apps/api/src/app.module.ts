@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthService } from './common/health.service';
+import { CatalogModule } from './catalog/catalog.module';
 for (const envPath of [
   resolve(process.cwd(), '.env'),
   resolve(process.cwd(), '../../.env'),
@@ -56,6 +57,7 @@ for (const envPath of [
     AuthModule,
     UsersModule,
     AdminModule,
+    CatalogModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthService],
