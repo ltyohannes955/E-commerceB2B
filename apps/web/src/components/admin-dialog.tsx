@@ -2,7 +2,6 @@
 
 import { X } from '@phosphor-icons/react';
 import { useEffect, useId, useRef } from 'react';
-import { AdminToaster } from '@/components/admin-toaster';
 
 export function AdminDialog({
   title,
@@ -39,7 +38,6 @@ export function AdminDialog({
         if (event.target === ref.current) onClose();
       }}
     >
-      <AdminToaster />
       <div className="admin-dialog-head">
         <h2 id={titleId}>{title}</h2>
         <button type="button" aria-label="Close dialog" onClick={onClose}>

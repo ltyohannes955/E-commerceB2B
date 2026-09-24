@@ -3,43 +3,14 @@ import Link from 'next/link';
 import {
   ArrowRight,
   ArrowUpRight,
-  CaretRight,
-  Cube,
   Lightning,
   MagnifyingGlass,
   Package,
   ShieldCheck,
-  SquaresFour,
 } from '@phosphor-icons/react/dist/ssr';
 import { FeaturedProducts } from '@/components/catalog-ui';
+import { HomeDepartments } from '@/components/home-departments';
 import { SiteShell } from '@/components/site-shell';
-
-const departments = [
-  {
-    name: 'Industrial equipment',
-    slug: 'industrial-equipment',
-    count: 'Kitchen, tools, machinery',
-    icon: Cube,
-  },
-  {
-    name: 'Lighting & electrical',
-    slug: 'lighting-electrical',
-    count: 'Fixtures, power, backup',
-    icon: Lightning,
-  },
-  {
-    name: 'Office & retail',
-    slug: 'office-retail',
-    count: 'Furniture, displays, supplies',
-    icon: SquaresFour,
-  },
-  {
-    name: 'Hospitality essentials',
-    slug: 'hospitality-essentials',
-    count: 'Guest rooms, service, fit-out',
-    icon: Package,
-  },
-];
 
 export default function Home() {
   return (
@@ -91,26 +62,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="department-strip" aria-label="Shop by department">
-          <div className="shell department-grid">
-            {departments.map(({ name, slug, count, icon: Icon }) => (
-              <Link
-                className="department-link"
-                href={`/categories/${slug}`}
-                key={slug}
-              >
-                <span className="department-icon">
-                  <Icon size={22} weight="duotone" />
-                </span>
-                <span>
-                  <strong>{name}</strong>
-                  <small>{count}</small>
-                </span>
-                <CaretRight size={16} className="department-arrow" />
-              </Link>
-            ))}
-          </div>
-        </section>
+        <HomeDepartments />
 
         <FeaturedProducts />
 

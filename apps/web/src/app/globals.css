@@ -1096,6 +1096,30 @@ a:focus-visible {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
+.department-state {
+  margin: 0;
+  padding: 1.2rem 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+.department-state a,
+.department-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--emerald);
+  font-weight: 750;
+}
+.department-more {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--line);
+}
+.department-more a {
+  font-size: 0.76rem;
+}
 .department-link {
   display: grid;
   min-height: 6.7rem;
@@ -2418,9 +2442,6 @@ a:focus-visible {
 }
 .admin-dialog::backdrop {
   background: #102438a8;
-}
-.admin-app:has(.admin-dialog[open]) > [data-sonner-toaster] {
-  visibility: hidden;
 }
 .admin-toast {
   font-family: var(--font-body), sans-serif;

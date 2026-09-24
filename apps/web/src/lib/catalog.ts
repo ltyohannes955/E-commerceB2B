@@ -52,6 +52,19 @@ export type CatalogPage = {
   total: number;
   totalPages: number;
 };
+export type CatalogCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  parentId: string | null;
+  children: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+  }>;
+};
 const apiOrigin = process.env.INTERNAL_API_URL ?? 'http://localhost:3001';
 export async function catalogFetch<T>(
   path: string,

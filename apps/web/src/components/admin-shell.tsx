@@ -165,102 +165,104 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     (pathname.startsWith('/admin/catalog/') ? sections[1] : sections[0]);
 
   return (
-    <div className="admin-app">
+    <>
       <AdminToaster />
-      {menuOpen && (
-        <button
-          className="admin-scrim"
-          aria-label="Close navigation"
-          onClick={() => closeMenu(true)}
-        />
-      )}
-      <aside
-        className={`admin-sidebar${menuOpen ? ' is-open' : ''}`}
-        aria-label="Admin sidebar"
-      >
-        <div className="admin-sidebar-heading">
-          <Link
-            href="/admin"
-            className="admin-brand"
-            onClick={() => closeMenu()}
-          >
-            <span className="wordmark-mark" aria-hidden="true">
-              e
-            </span>
-            <span>
-              <strong>E-commerce</strong>
-              <small>Admin workspace</small>
-            </span>
-          </Link>
+      <div className="admin-app">
+        {menuOpen && (
           <button
-            className="admin-mobile-close"
-            type="button"
+            className="admin-scrim"
             aria-label="Close navigation"
             onClick={() => closeMenu(true)}
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="admin-sidebar-group-label">Workspace</div>
-        <nav className="admin-nav" aria-label="Admin navigation">
-          {sections.map(({ href, label, icon: Icon }) => {
-            const active =
-              href === '/admin/catalog'
-                ? pathname.startsWith(href)
-                : pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? 'page' : undefined}
-                onClick={() => closeMenu()}
-              >
-                <Icon size={19} aria-hidden="true" />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="admin-sidebar-footer">
-          <Link href="/" onClick={() => closeMenu()}>
-            <ArrowSquareOut size={18} aria-hidden="true" /> View storefront
-          </Link>
-          <button type="button" onClick={logout} disabled={loggingOut}>
-            <SignOut size={18} aria-hidden="true" />{' '}
-            {loggingOut ? 'Signing out…' : 'Sign out'}
-          </button>
-        </div>
-      </aside>
-      <div className="admin-workspace">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <button
-              ref={menuButton}
-              className="admin-menu-toggle"
-              type="button"
-              aria-label="Open navigation"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(true)}
+          />
+        )}
+        <aside
+          className={`admin-sidebar${menuOpen ? ' is-open' : ''}`}
+          aria-label="Admin sidebar"
+        >
+          <div className="admin-sidebar-heading">
+            <Link
+              href="/admin"
+              className="admin-brand"
+              onClick={() => closeMenu()}
             >
-              <List size={21} />
+              <span className="wordmark-mark" aria-hidden="true">
+                e
+              </span>
+              <span>
+                <strong>E-commerce</strong>
+                <small>Admin workspace</small>
+              </span>
+            </Link>
+            <button
+              className="admin-mobile-close"
+              type="button"
+              aria-label="Close navigation"
+              onClick={() => closeMenu(true)}
+            >
+              <X size={20} />
             </button>
-            <div>
-              <span>Operations / {activeSection.label}</span>
-              <strong>{activeSection.label}</strong>
-            </div>
           </div>
-          <div className="admin-user">
-            <span aria-hidden="true">
-              {user?.fullName?.charAt(0).toUpperCase() ?? 'A'}
-            </span>
-            <div>
-              <strong>{user?.fullName}</strong>
-              <small>Administrator</small>
-            </div>
+          <div className="admin-sidebar-group-label">Workspace</div>
+          <nav className="admin-nav" aria-label="Admin navigation">
+            {sections.map(({ href, label, icon: Icon }) => {
+              const active =
+                href === '/admin/catalog'
+                  ? pathname.startsWith(href)
+                  : pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => closeMenu()}
+                >
+                  <Icon size={19} aria-hidden="true" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="admin-sidebar-footer">
+            <Link href="/" onClick={() => closeMenu()}>
+              <ArrowSquareOut size={18} aria-hidden="true" /> View storefront
+            </Link>
+            <button type="button" onClick={logout} disabled={loggingOut}>
+              <SignOut size={18} aria-hidden="true" />{' '}
+              {loggingOut ? 'Signing out…' : 'Sign out'}
+            </button>
           </div>
-        </header>
-        <main className="admin-content">{children}</main>
+        </aside>
+        <div className="admin-workspace">
+          <header className="admin-topbar">
+            <div className="admin-topbar-left">
+              <button
+                ref={menuButton}
+                className="admin-menu-toggle"
+                type="button"
+                aria-label="Open navigation"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen(true)}
+              >
+                <List size={21} />
+              </button>
+              <div>
+                <span>Operations / {activeSection.label}</span>
+                <strong>{activeSection.label}</strong>
+              </div>
+            </div>
+            <div className="admin-user">
+              <span aria-hidden="true">
+                {user?.fullName?.charAt(0).toUpperCase() ?? 'A'}
+              </span>
+              <div>
+                <strong>{user?.fullName}</strong>
+                <small>Administrator</small>
+              </div>
+            </div>
+          </header>
+          <main className="admin-content">{children}</main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

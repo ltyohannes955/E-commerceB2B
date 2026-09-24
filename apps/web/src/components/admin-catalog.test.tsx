@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { toast } from 'sonner';
 import { AdminCatalogList } from './admin-catalog';
@@ -303,22 +309,50 @@ describe('admin catalog dialogs', () => {
     expect(calls[saveIndex][1]?.body).toContain('"leadTimeDays":14');
   });
 
-  it('uses a labeled duplicate action in the product table', async () => {
-    request.mockResolvedValue({
-      items: [
-        {
+  it('replaces duplicate with a publish action in the product table', async () => {
+    request.mockImplementation(async (path, init) => {
+      if (path === '/admin/products?pageSize=100' && !init?.method)
+        return {
+          items: [
+            {
+              id: 'product-1',
+              name: 'Pump',
+              internalSku: 'PUMP-1',
+              status: 'DRAFT',
+              saleMode: 'RFQ_ONLY',
+            },
+          ],
+        } as never;
+      if (path === '/admin/products/product-1/status')
+        return {
           id: 'product-1',
           name: 'Pump',
           internalSku: 'PUMP-1',
-          status: 'DRAFT',
+          status: 'PUBLISHED',
           saleMode: 'RFQ_ONLY',
-        },
-      ],
-    } as never);
+        } as never;
+      throw new Error(`Unexpected request: ${path}`);
+    });
     render(<AdminCatalogList />);
+    const publish = await screen.findByRole('button', { name: 'Publish' });
+    expect(publish).toBeVisible();
     expect(
-      await screen.findByRole('button', { name: 'Duplicate draft' }),
-    ).toBeVisible();
+      screen.queryByRole('button', { name: 'Duplicate draft' }),
+    ).toBeNull();
+    fireEvent.click(publish);
+    await waitFor(() =>
+      expect(request).toHaveBeenCalledWith(
+        '/admin/products/product-1/status',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'PUBLISHED' }),
+        }),
+      ),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Product published',
+      expect.any(Object),
+    );
   });
 
   it('publishes a saved draft and can return it to draft status', async () => {
@@ -350,13 +384,14 @@ describe('admin catalog dialogs', () => {
       throw new Error(`Unexpected request: ${path}`);
     });
     render(<AdminCatalogList initialProduct="product-1" />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Publish' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Edit product' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Publish' }));
     expect(
-      await screen.findByRole('button', { name: 'Unpublish' }),
+      await within(dialog).findByRole('button', { name: 'Unpublish' }),
     ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Unpublish' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Unpublish' }));
     expect(
-      await screen.findByRole('button', { name: 'Publish' }),
+      await within(dialog).findByRole('button', { name: 'Publish' }),
     ).toBeVisible();
     expect(
       request.mock.calls

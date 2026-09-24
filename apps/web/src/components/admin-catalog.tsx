@@ -64,6 +64,7 @@ export function AdminCatalogList({
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [active, setActive] = useState<string | null>(initialProduct ?? null);
   const [message, setMessage] = useState('');
+  const [statusChangeId, setStatusChangeId] = useState<string | null>(null);
 
   async function reload() {
     try {
@@ -100,21 +101,50 @@ export function AdminCatalogList({
     if (initialProduct) router.replace('/admin/catalog');
   }
 
-  async function duplicate(id: string) {
+  async function changeProductStatus(product: AdminProduct) {
+    const next =
+      product.status === 'PUBLISHED' || product.status === 'ARCHIVED'
+        ? 'DRAFT'
+        : 'PUBLISHED';
+    setStatusChangeId(product.id);
     try {
-      const copy = await adminCatalogRequest<AdminProduct>(
-        `/admin/products/${id}/duplicate`,
-        { method: 'POST' },
+      const updated = await adminCatalogRequest<AdminProduct>(
+        `/admin/products/${product.id}/status`,
+        { method: 'PATCH', body: JSON.stringify({ status: next }) },
       );
-      await reload();
-      setActive(copy.id);
-      setMessage('Draft copy created.');
-      toast.success('Draft copy created', {
-        description: 'The duplicate is private until you publish it.',
-      });
+      setProducts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setMessage(
+        next === 'PUBLISHED'
+          ? 'Product published.'
+          : product.status === 'ARCHIVED'
+            ? 'Product restored to draft.'
+            : 'Product unpublished and returned to draft.',
+      );
+      toast.success(
+        next === 'PUBLISHED'
+          ? 'Product published'
+          : product.status === 'ARCHIVED'
+            ? 'Draft restored'
+            : 'Product unpublished',
+        {
+          description:
+            next === 'PUBLISHED'
+              ? 'It is now visible in the storefront.'
+              : 'It is no longer visible in the storefront.',
+        },
+      );
     } catch (error) {
       setMessage((error as Error).message);
-      notifyAdminError('Could not duplicate product', error);
+      notifyAdminError(
+        next === 'PUBLISHED'
+          ? 'Could not publish product'
+          : 'Could not unpublish product',
+        error,
+      );
+    } finally {
+      setStatusChangeId(null);
     }
   }
 
@@ -209,9 +239,16 @@ export function AdminCatalogList({
                       </button>
                       <button
                         type="button"
-                        onClick={() => duplicate(product.id)}
+                        disabled={statusChangeId === product.id}
+                        onClick={() => void changeProductStatus(product)}
                       >
-                        Duplicate draft
+                        {statusChangeId === product.id
+                          ? 'Updating…'
+                          : product.status === 'PUBLISHED'
+                            ? 'Unpublish'
+                            : product.status === 'ARCHIVED'
+                              ? 'Restore draft'
+                              : 'Publish'}
                       </button>
                     </div>
                   </td>
